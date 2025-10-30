@@ -1,0 +1,83 @@
+@extends('layouts.base')
+
+@section('body')
+    <div class="font-sans antialiased">
+
+    {{-- The navbar with `sticky` and `full-width` --}}
+    <x-nav sticky full-width>
+
+        <x-slot:brand>
+            {{-- Drawer toggle for "main-drawer" --}}
+            <label for="main-drawer" class="lg:hidden mr-3">
+                <x-icon name="o-bars-3" class="cursor-pointer" />
+            </label>
+
+            {{-- Brand --}}
+            <div>App</div>
+        </x-slot:brand>
+
+        {{-- Right side actions --}}
+        <x-slot:actions>
+            <x-button label="Messages" icon="o-envelope" link="###" class="btn-ghost btn-sm" responsive />
+            <x-button label="Notifications" icon="o-bell" link="###" class="btn-ghost btn-sm" responsive />
+        </x-slot:actions>
+    </x-nav>
+
+    {{-- The main content with `full-width` --}}
+    <x-main with-nav full-width>
+
+        {{-- This is a sidebar that works also as a drawer on small screens --}}
+        {{-- Notice the `main-drawer` reference here --}}
+        <x-slot:sidebar drawer="main-drawer" collapsible class="bg-base-200">
+            @if ($user = auth()->user())
+                <x-card class="px-2 shadow-sm border border-base-300 bg-base-100 dark:bg-base-200 rounded-xl">
+                    <div class="flex flex-row items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <x-avatar
+                                :image="'https://ui-avatars.com/api/?name=' . urlencode($user->name)"
+                                alt="{{ $user->name }}"
+                                class="w-10 h-10 ring-2 ring-primary/20"
+                            />
+
+                            <div>
+                                <h3 class="font-semibold text-base-content/90">{{ $user->name }}</h3>
+                                <p class="text-sm text-base-content/70">{{ $user->email }}</p>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-circle btn-error btn-sm hover:scale-105 transition-transform" aria-label="Logout">
+                                <x-icon name="o-power" />
+                            </button>
+                        </form>
+                    </div>
+                </x-card>
+
+                <x-menu-separator class="my-3 opacity-70" />
+            @endif
+
+
+            {{-- Activates the menu item when a route matches the `link` property --}}
+            <x-menu activate-by-route>
+                <x-menu-item :title="__('Dashboard')" icon="o-home" :link="route('app.dashboard')" />
+                <x-menu-item title="Messages" icon="o-envelope" link="###" />
+                <x-menu-sub title="Settings" icon="o-cog-6-tooth">
+                    <x-menu-item title="Wifi" icon="o-wifi" link="####" />
+                    <x-menu-item title="Archives" icon="o-archive-box" link="####" />
+                </x-menu-sub>
+            </x-menu>
+        </x-slot:sidebar>
+
+        {{-- The `$slot` goes here --}}
+{{--        @yield('content')--}}
+        <x-slot:content>
+            {{ $slot }}
+        </x-slot:content>
+    </x-main>
+
+    {{--  TOAST area --}}
+    <x-toast />
+    </div>
+@endsection
+

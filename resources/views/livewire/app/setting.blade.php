@@ -209,38 +209,74 @@
       @endif
 
     </div>
-    <div class="p-6 space-y-4">
-      <h2 class="text-xl font-semibold">⚙️ Run Artisan Command</h2>
 
-      <div class="space-y-2">
+  </div>
+  <div class="space-y-6">
+    <x-card title="⚙️ Artisan Command Runner" class="shadow-xl">
 
-        <x-select
-          label="Select Command"
-          wire:model="selectedCommand"
-          :options="$availableCommands"
-          placeholder="Choose command..."
-        />
+      <form wire:submit="run" class="space-y-4">
 
-        <x-button
-          primary
-          wire:click="run"
-          wire:loading.attr="disabled"
-        >
-          Run Command
-        </x-button>
-      </div>
+        <div class="flex flex-col md:flex-row md:items-end gap-3">
 
-      <div wire:loading.flex class="text-sm text-gray-500">
-        Executing...
-      </div>
+          <div class="flex-grow">
+            <x-select
+              label="Select Command"
+              wire:model.live="selectedCommand"
+              :options="$availableCommands"
+              placeholder="Choose a command to execute..."
+            />
+          </div>
 
-      @if ($output)
-        <div class="mt-4 p-3 bg-gray-900 text-green-400 rounded font-mono text-sm whitespace-pre-wrap">
-          {!! nl2br(e($output)) !!}
+          <div>
+            <x-button
+
+              type="submit"
+              spinner="run"
+              class="w-full md:w-auto"
+              icon-right="o-play"
+              :disabled="!$selectedCommand"
+            >
+              Run Command
+            </x-button>
+          </div>
         </div>
-      @endif
-    </div>
+      </form>
 
+      <x-hr />
+
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-sm font-semibold">Command Output</h3>
+          <x-button
+            wire:click="$set('output', null)"
+            icon="o-x-mark"
+            class="btn-xs btn-ghost"
+            :disabled="!$output"
+          />
+        </div>
+
+        <div
+          @class([
+              'p-4 rounded-lg font-mono text-sm whitespace-pre-wrap min-h-[150px] transition-all',
+              'bg-gray-800 text-gray-400' => !$output, // Placeholder
+              'bg-gray-900 text-green-400' => $output,
+          ])
+        >
+          <div wire:loading.flex wire:target="run" class="items-center opacity-75">
+            <x-loading class="loading-spinner loading-xs mr-2" />
+            Executing `{{ $selectedCommand }}`...
+          </div>
+
+          <div wire:loading.remove wire:target="run">
+            @if ($output)
+              {!! nl2br(e($output)) !!}
+            @else
+              <span class="opacity-50">$ Output will appear here...</span>
+            @endif
+          </div>
+        </div>
+      </div>
+    </x-card>
   </div>
 </div>
 

@@ -64,10 +64,10 @@
                 <x-menu-item :title="__('Profile')" icon="o-user-circle" :link="route('app.profile')" route="app.profile"/>
                 <x-menu-item title="Messages" icon="o-envelope" link="###" />
                 <x-menu-sub title="Settings" icon="o-cog-6-tooth">
-                  <x-menu-item :title="__('Settings')" icon="o-user-circle" :link="route('app.settings')" route="app.settings"/>
-
+                  <x-menu-item :title="__('Settings')" icon="o-cog-6-tooth" :link="route('app.settings')" route="app.settings"/>
+                  <x-menu-item :title="__('Roles')" icon="o-shield-check" :link="route('app.roles')" route="app.roles"/>
+                  <x-menu-item :title="__('Users')" icon="o-users" :link="route('app.users')" route="app.users"/>
                   <x-menu-item title="Wifi" icon="o-wifi" link="####" />
-                    <x-menu-item title="Archives" icon="o-archive-box" link="####" />
                 </x-menu-sub>
             </x-menu>
         </x-slot:sidebar>

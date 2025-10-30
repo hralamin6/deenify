@@ -15,17 +15,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-      User::updateOrCreate([
-        'name' => 'admin',
-        'email' => 'admin@mail.com'], [
-        'email_verified_at' => now(),
-        'password' => bcrypt('000000'),
-      ]);
-      User::updateOrCreate([
-        'name' => 'user',
-        'email' => 'user@mail.com'], [
-        'email_verified_at' => now(),
-        'password' => bcrypt('000000'),
-      ]);
+        // Seed roles & permissions first
+        $this->call([
+            PermissionSeeder::class,
+        ]);
+
+        // Seed demo users
+        $admin = User::updateOrCreate([
+            'email' => 'admin@mail.com'], [
+            'name' => 'admin',
+            'email_verified_at' => now(),
+            'password' => bcrypt('000000'),
+        ]);
+
+        $user = User::updateOrCreate([
+            'email' => 'user@mail.com'], [
+            'name' => 'user',
+            'email_verified_at' => now(),
+            'password' => bcrypt('000000'),
+        ]);
+
+        // Assign roles
+        if ($admin && !$admin->hasRole('super-admin')) {
+            $admin->assignRole('super-admin');
+        }
+        if ($user && !$user->hasRole('user')) {
+            $user->assignRole('user');
+        }
     }
 }

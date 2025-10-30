@@ -54,6 +54,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
   Route::livewire('/app/', 'app.dashboard')->name('app.dashboard');
   Route::livewire('/app/profile/', 'app.profile')->name('app.profile')->middleware('password.confirm');
   Route::livewire('/app/settings/', 'app.setting')->name('app.settings')->middleware('password.confirm');
+  Route::livewire('/app/roles/', 'app.role')->name('app.roles')->middleware('password.confirm');
+  Route::livewire('/app/users/', 'app.user')->name('app.users')->middleware('password.confirm');
 });
 
 Route::middleware('auth')->group(function () {

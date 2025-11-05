@@ -133,30 +133,89 @@
         <div class="space-y-4">
             @forelse($activities as $activity)
                 <div class="flex gap-4 pb-4 border-b border-base-300 last:border-0">
-                    {{-- Icon --}}
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 rounded-full bg-{{ $this->getEventColor($activity->event) }} flex items-center justify-center">
-                            <x-icon name="{{ $this->getEventIcon($activity->event) }}" class="w-5 h-5 text-white" />
-                        </div>
+                    {{-- Timeline dot --}}
+                    <div class="flex flex-col items-center">
+                        <div class="w-3 h-3 rounded-full bg-primary"></div>
+                        @if(!$loop->last)
+                            <div class="w-0.5 h-full bg-base-300 mt-1"></div>
+                        @endif
                     </div>
 
                     {{-- Content --}}
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 -mt-1">
                         <div class="flex items-start justify-between">
-                            <div>
+                            <div class="flex-1">
                                 <p class="font-medium text-base-content">
                                     {{ $activity->description }}
                                 </p>
                                 <div class="flex items-center gap-2 mt-1 text-sm text-base-content/60">
                                     @if($activity->causer)
-                                        <span>{{ __('by') }} <strong>{{ $activity->causer->name }}</strong></span>
+                                        <x-icon name="o-user" class="w-4 h-4" />
+                                        <span>{{ $activity->causer->name }}</span>
+                                        <span>•</span>
                                     @endif
-                                    <span>•</span>
-                                    <span>{{ $activity->created_at->diffForHumans() }}</span>
+                                    <x-icon name="o-clock" class="w-4 h-4" />
+                                    <span>{{ $activity->created_at->format('M d, Y h:i A') }}</span>
+                                    <span>({{ $activity->created_at->diffForHumans() }})</span>
                                     @if($activity->log_name)
-                                        <span class="badge badge-sm badge-ghost">{{ $activity->log_name }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-2">{{ $activity->log_name }}</span>
+                                    @endif
+                                    @if($activity->event)
+                                        <span class="badge badge-sm badge-primary">{{ ucfirst($activity->event) }}</span>
                                     @endif
                                 </div>
+
+                                {{-- Subject Info --}}
+                                @if($activity->subject)
+                                    <div class="mt-2 text-sm">
+                                        <span class="text-base-content/60">{{ __('Related to:') }}</span>
+                                        <span class="font-medium">{{ class_basename($activity->subject_type) }}</span>
+                                        @if(method_exists($activity->subject, 'getActivityLabel'))
+                                            <span class="text-base-content/60">- {{ $activity->subject->getActivityLabel() }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                {{-- Changes Details --}}
+                                @if($activity->properties && $activity->event === 'updated')
+                                    <details class="mt-2">
+                                        <summary class="cursor-pointer text-sm text-primary hover:underline">
+                                            {{ __('View changes') }}
+                                        </summary>
+                                        <div class="mt-2 p-3 bg-base-200 rounded text-sm">
+                                            @if(isset($activity->properties['old']))
+                                                <div class="space-y-1">
+                                                    @foreach($activity->properties['attributes'] as $key => $value)
+                                                        @if(isset($activity->properties['old'][$key]) && $activity->properties['old'][$key] != $value)
+                                                            <div>
+                                                                <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                                                <span class="line-through text-error">
+                                                                    {{ is_array($activity->properties['old'][$key]) ? json_encode($activity->properties['old'][$key]) : $activity->properties['old'][$key] }}
+                                                                </span>
+                                                                <x-icon name="o-arrow-right" class="w-3 h-3 inline" />
+                                                                <span class="text-success">
+                                                                    {{ is_array($value) ? json_encode($value) : $value }}
+                                                                </span>
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </details>
+                                @endif
+
+                                {{-- Device Info --}}
+                                @if($activity->ip_address)
+                                    <div class="mt-2 text-xs text-base-content/40 flex items-center gap-2">
+                                        <x-icon name="o-globe-alt" class="w-3 h-3" />
+                                        <span>{{ $activity->ip_address }}</span>
+                                        @if($activity->user_agent)
+                                            <span>•</span>
+                                            <span class="truncate max-w-xs">{{ $activity->user_agent }}</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

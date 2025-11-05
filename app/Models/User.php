@@ -35,7 +35,10 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     {
         $this->addMediaCollection('profile')->singleFile()->registerMediaConversions(function (?Media $media = null) {
             $this->addMediaConversion('thumb')->quality('10')->nonQueued();
+        });
 
+        $this->addMediaCollection('banner')->singleFile()->registerMediaConversions(function (?Media $media = null) {
+            $this->addMediaConversion('thumb')->quality('10')->nonQueued();
         });
     }
 
@@ -55,6 +58,23 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
         // ✅ Step 2: Fallback to external avatar generator
         return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=random';
+    }
+
+    public function getBannerUrlAttribute()
+    {
+        $media = $this->getFirstMedia('banner');
+
+        // Check if media exists and file is available
+        if ($media) {
+            $path = $media->getPath();
+
+            if (file_exists($path)) {
+                return $media->getUrl();
+            }
+        }
+
+        // Fallback to a default banner image
+        return null;
     }
 
     /**
@@ -122,5 +142,13 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function subjectActivities()
     {
         return $this->morphMany(\App\Models\Activity::class, 'subject')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get the user's details.
+     */
+    public function detail()
+    {
+        return $this->hasOne(UserDetail::class);
     }
 }

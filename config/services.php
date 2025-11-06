@@ -62,9 +62,13 @@ return [
 
     // AI providers
     'openrouter' => [
-        'key' => env('OPENROUTER_API_KEY', ''),
+        'api_key' => env('OPENROUTER_API_KEY', ''),
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
-        'model' => env('OPENROUTER_MODEL', 'openai/gpt-oss-20b:free'),
+        'model' => env('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
+    ],
+
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', ''),
     ],
 
     'pollinations' => [

@@ -36,6 +36,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
         @livewireScripts
+      @stack('styles')
+      @stack('scripts')
 
         <!-- CropperJS for Mary File cropper -->
 {{--        <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css">--}}

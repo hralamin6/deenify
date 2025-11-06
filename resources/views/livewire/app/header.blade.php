@@ -82,7 +82,7 @@
                 $unreadCount = $conversation->getUnreadCount(auth()->id());
               @endphp
               <li>
-                <a wire:navigate href="{{ route('chat.index', ['conversation' => $conversation->id]) }}"
+                <a wire:navigate href="{{ route('app.chat', ['conversation' => $conversation->id]) }}"
                    @click="messagesOpen = false"
                    class="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg">
                   <div class="avatar">
@@ -109,7 +109,7 @@
             @endforeach
           </ul>
           <div class="p-2 border-t border-base-300">
-            <a wire:navigate href="{{ route('chat.index') }}" @click="messagesOpen = false"
+            <a wire:navigate href="{{ route('app.chat') }}" @click="messagesOpen = false"
                class="btn btn-sm btn-block btn-ghost">
               {{ __('View All Messages') }}
             </a>

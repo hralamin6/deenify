@@ -1,6 +1,6 @@
 /* Import Tailwind CSS framework */
 @import 'tailwindcss';
-
+@plugin "@tailwindcss/typography";
 /* Custom theme configuration with system font stack */
 
 @theme {

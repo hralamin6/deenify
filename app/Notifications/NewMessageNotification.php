@@ -54,7 +54,7 @@ class NewMessageNotification extends Notification implements ShouldQueue
             ->subject('New message from ' . $this->message->user->name)
             ->line($this->message->user->name . ' sent you a message.')
             ->line('"' . \Illuminate\Support\Str::limit($this->message->body, 100) . '"')
-            ->action('View Message', route('chat.index', ['conversation' => $this->message->conversation_id]))
+            ->action('View Message', route('app.chat', ['conversation' => $this->message->conversation_id]))
             ->line('Thank you for using our application!');
     }
 
@@ -65,7 +65,7 @@ class NewMessageNotification extends Notification implements ShouldQueue
     {
         $sender = $this->message->user;
         $hasAttachment = $this->message->hasAttachments();
-        
+
         // Determine body text
         if ($hasAttachment && !$this->message->body) {
             $bodyText = '📎 Sent an attachment';
@@ -87,7 +87,7 @@ class NewMessageNotification extends Notification implements ShouldQueue
             ->action('View', 'view')
             ->action('Mark as Read', 'mark_read')
             ->data([
-                'url' => route('chat.index', ['conversation' => $this->message->conversation_id]),
+                'url' => route('app.chat', ['conversation' => $this->message->conversation_id]),
                 'conversation_id' => $this->message->conversation_id,
                 'message_id' => $this->message->id,
                 'sender_id' => $sender->id,

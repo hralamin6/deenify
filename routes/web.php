@@ -23,7 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/app/activities/my/', 'app.my-activities')->name('app.activity.my');
 
     // Chat routes
-    Route::livewire('/app/chat/{conversation?}', 'app.chat-component')->name('chat.index');
+    Route::livewire('/app/chat/{conversation?}', 'app.chat-component')->name('app.chat');
+    Route::livewire('/app/ai-chat/{conversation?}', 'app.ai-chat-component')->name('app.ai-chat');
 });
 
 // Push notification API routes (now accessible to both guests and authenticated users)

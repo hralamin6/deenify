@@ -222,4 +222,12 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     {
         return $this->hasMany(MessageReaction::class);
     }
+
+    /**
+     * Get all AI conversations for this user.
+     */
+    public function aiConversations()
+    {
+        return $this->hasMany(AiConversation::class);
+    }
 }

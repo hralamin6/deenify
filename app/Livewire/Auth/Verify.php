@@ -12,7 +12,7 @@ class Verify extends Component
     public function resend()
     {
         if (Auth::user()->hasVerifiedEmail()) {
-          $this->redirect(route('web.home'), navigate: true);
+            $this->redirect(route('web.home'));
 
         }else{
           Auth::user()->sendEmailVerificationNotification();
@@ -25,7 +25,7 @@ class Verify extends Component
     public function render()
     {
       if (Auth::user()->hasVerifiedEmail()) {
-        $this->redirect(route('web.home'), navigate: true);
+            $this->redirect(route('web.home'));
 
       }
         return view('livewire.auth.verify')->extends('layouts.auth');

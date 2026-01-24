@@ -43,7 +43,9 @@ class Login extends Component
             return;
         }
 
-      $this->redirect(route('web.home'), navigate: true);
+        session()->regenerate();
+
+        $this->redirect(route('web.home'));
     }
 
     public function render()

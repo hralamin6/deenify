@@ -39,7 +39,9 @@ class Register extends Component
 
         Auth::login($user, true);
 
-      $this->redirect(route('web.home'), navigate: true);
+        session()->regenerate();
+
+        $this->redirect(route('web.home'));
 
     }
 

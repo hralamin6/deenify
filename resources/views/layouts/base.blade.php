@@ -43,7 +43,7 @@
 {{--        <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css">--}}
 {{--        <script defer src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>--}}
 {{--      <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.1/Sortable.min.js"></script>--}}
-{{--      <script src="https://cdn.tiny.cloud/1/mbka6lqu2y9tf2q7tvoe1clyhs6oxwsct5ma91a7re40y5ms/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>--}}
+      <script src="https://cdn.tiny.cloud/1/mbka6lqu2y9tf2q7tvoe1clyhs6oxwsct5ma91a7re40y5ms/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
       {{-- ========================================== --}}
       {{-- GLOBAL ECHO LISTENER FOR HEADER BADGE --}}
       {{-- Updates unread count on all pages except chat --}}

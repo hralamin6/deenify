@@ -47,5 +47,7 @@ class DatabaseSeeder extends Seeder
         if ($user && !$user->hasRole('user')) {
             $user->assignRole('user');
         }
+
+        $this->call([DonationSystemSeeder::class,]);
     }
 }

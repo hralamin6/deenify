@@ -2,9 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
-require __DIR__.'/auth.php';
+require __DIR__.'/auth.php'; 
 
 Route::livewire('/', 'web::home')->name('web.home');
+Route::livewire('/campaigns', 'web::campaigns')->name('web.campaigns');
+Route::livewire('/campaigns/{slug}', 'web::campaign')->name('web.campaign');
 
 Route::middleware('auth')->group(function () {
     Route::livewire('/app/', 'app::dashboard')->name('app.dashboard');
@@ -16,6 +18,9 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/app/backups/', 'app::backups')->name('app.backups');
     Route::livewire('/app/translate/', 'app::translate')->name('app.translate');
     Route::livewire('/app/pages/', 'app::pages')->name('app.pages');
+    Route::livewire('/app/campaigns/', 'app::campaigns')->name('app.campaigns');
+    Route::livewire('/app/expense-categories/', 'app::expense-categories')->name('app.expense-categories');
+    Route::livewire('/app/expenses/', 'app::expenses')->name('app.expenses');
 
     Route::livewire('/app/notifications/', 'app::notifications')->name('app.notifications');
 

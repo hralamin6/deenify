@@ -43,6 +43,15 @@
           {{-- Activates the menu item when a route matches the `link` property --}}
           <x-menu activate-by-route>
             <x-menu-item :title="__('Dashboard')" icon="o-home" :link="route('app.dashboard')" route="app.dashboard" />
+            @can('campaigns.view')
+            <x-menu-item :title="__('Campaigns')" icon="o-flag" :link="route('app.campaigns')" route="app.campaigns"/>
+            @endcan
+            @can('expense-categories.view')
+            <x-menu-item :title="__('Expense Categories')" icon="o-tag" :link="route('app.expense-categories')" route="app.expense-categories"/>
+            @endcan
+            @can('expenses.view')
+            <x-menu-item :title="__('Expenses')" icon="o-receipt-percent" :link="route('app.expenses')" route="app.expenses"/>
+            @endcan
             <x-menu-sub title="User Settings" icon="o-user">
               <x-menu-item :title="__('Profile')" icon="o-user-circle" :link="route('app.profile')" route="app.profile"/>
               <x-menu-item :title="__('Chat')" icon="o-chat-bubble-left-right" :link="route('app.chat')" route="app.chat" />
@@ -59,6 +68,7 @@
               <x-menu-item :title="__('Backups')" icon="o-cloud" :link="route('app.backups')" route="app.backups"/>
               <x-menu-item :title="__('Translations')" icon="o-language" :link="route('app.translate')" route="app.translate"/>
               <x-menu-item :title="__('Pages')" icon="o-document-text" :link="route('app.pages')" route="app.pages"/>
+              
 
 
               @can('activity.feed')
@@ -79,4 +89,3 @@
     <x-toast />
     </div>
 @endsection
-

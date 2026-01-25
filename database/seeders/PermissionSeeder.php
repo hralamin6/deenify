@@ -41,6 +41,15 @@ class PermissionSeeder extends Seeder
             'pages' => [
                 'pages.view', 'pages.create', 'pages.edit', 'pages.delete',
             ],
+            'campaigns' => [
+                'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.delete',
+            ],
+            'expense-categories' => [
+                'expense-categories.view', 'expense-categories.create', 'expense-categories.edit', 'expense-categories.delete',
+            ],
+            'expenses' => [
+                'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
+            ],
         ];
 
         // Create permissions
@@ -56,6 +65,7 @@ class PermissionSeeder extends Seeder
         // Create roles
         $super = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => $guard]);
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => $guard]);
+        $staff = Role::firstOrCreate(['name' => 'staff', 'guard_name' => $guard]);
         $user = Role::firstOrCreate(['name' => 'user', 'guard_name' => $guard]);
 
         // Assign permissions
@@ -71,8 +81,21 @@ class PermissionSeeder extends Seeder
             'profile.update',
             'activity.dashboard', 'activity.feed', 'activity.delete',
             'pages.view', 'pages.create', 'pages.edit',
+            'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.delete',
+            'expense-categories.view', 'expense-categories.create', 'expense-categories.edit', 'expense-categories.delete',
+            'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
         ])->get();
         $admin->syncPermissions($adminPerms);
+
+        $staffPerms = Permission::whereIn('name', [
+            'dashboard.view',
+            'campaigns.view',
+            'expense-categories.view',
+            'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
+            'pages.view',
+            'profile.update',
+        ])->get();
+        $staff->syncPermissions($staffPerms);
 
         $userPerms = Permission::whereIn('name', [
             'dashboard.view',

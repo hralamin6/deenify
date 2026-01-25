@@ -230,4 +230,24 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     {
         return $this->hasMany(AiConversation::class);
     }
+
+    public function campaignsCreated()
+    {
+        return $this->hasMany(Campaign::class, 'created_by');
+    }
+
+    public function expensesCreated()
+    {
+        return $this->hasMany(Expense::class, 'created_by');
+    }
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    public function recurringPlans()
+    {
+        return $this->hasMany(RecurringPlan::class);
+    }
 }

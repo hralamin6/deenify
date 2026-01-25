@@ -14,7 +14,6 @@ new class extends Component
         if (in_array($locale, ['en', 'ar', 'bn'])) {
             App::setLocale($locale);
             Session::put('locale', $locale);
-            //          $this->redirect(back(), navigate: true);
             $this->redirect(url()->previous(), navigate: true);
         }
     }

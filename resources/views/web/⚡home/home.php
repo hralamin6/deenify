@@ -1,73 +1,105 @@
 <?php
 
-use App\Models\GuestSubscription;
+use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\DonationReceipt;
+use App\Models\Expense;
+use App\Models\PaymentAttempt;
+use App\Models\RecurringPlan;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use NotificationChannels\WebPush\WebPushMessage;
-use NotificationChannels\WebPush\WebPushChannel;
-use Minishlink\WebPush\WebPush;
-use Minishlink\WebPush\Subscription;
 
 new
 #[Layout('layouts.auth')]
 class extends Component
 {
-    private function sendGuestNotifications()
+    public ?Campaign $featuredCampaign = null;
+    public $campaigns = [];
+    public array $stats = [];
+    public $recentReceipt = null;
+    public $nextRecurring = null;
+    public $recentDonors = [];
+    public $topCampaigns = [];
+    public array $paymentSplit = [];
+
+    public function mount(): void
     {
-        $guestSubscriptions = GuestSubscription::all();
+        $this->featuredCampaign = Campaign::query()
+            ->withSum(['donations as paid_donations_sum' => fn ($q) => $q->where('status', 'paid')], 'amount')
+            ->withCount(['donations as paid_donations_count' => fn ($q) => $q->where('status', 'paid')])
+            ->withSum('expenses', 'amount')
+            ->where('status', 'active')
+            ->orderByDesc('starts_at')
+            ->first();
 
-        if ($guestSubscriptions->isEmpty()) {
-            return;
+        $campaigns = Campaign::query()
+            ->withSum(['donations as paid_donations_sum' => fn ($q) => $q->where('status', 'paid')], 'amount')
+            ->withCount(['donations as paid_donations_count' => fn ($q) => $q->where('status', 'paid')])
+            ->withSum('expenses', 'amount')
+            ->where('status', 'active')
+            ->orderByDesc('starts_at')
+            ->limit(3)
+            ->get();
+
+        if ($campaigns->isEmpty()) {
+            $campaigns = Campaign::query()
+                ->withSum(['donations as paid_donations_sum' => fn ($q) => $q->where('status', 'paid')], 'amount')
+                ->withCount(['donations as paid_donations_count' => fn ($q) => $q->where('status', 'paid')])
+                ->withSum('expenses', 'amount')
+                ->latest()
+                ->limit(3)
+                ->get();
         }
 
-        // Initialize WebPush with VAPID keys
-        $webPush = new WebPush([
-            'VAPID' => [
-                'subject' => config('app.url'),
-                'publicKey' => config('webpush.vapid.public_key'),
-                'privateKey' => config('webpush.vapid.private_key'),
-            ],
-        ]);
+        $this->campaigns = $campaigns;
 
-        foreach ($guestSubscriptions as $guestSub) {
-            try {
-                // Create subscription object
-                $subscription = Subscription::create([
-                    'endpoint' => $guestSub->endpoint,
-                    'publicKey' => $guestSub->public_key,
-                    'authToken' => $guestSub->auth_token,
-                    'contentEncoding' => $guestSub->content_encoding,
-                ]);
+        $this->stats = [
+            'paid_total' => Donation::where('status', 'paid')->sum('amount'),
+            'expense_total' => Expense::sum('amount'),
+            'failed_count' => Donation::where('status', 'failed')->count(),
+            'paid_count' => Donation::where('status', 'paid')->count(),
+            'pending_count' => Donation::where('status', 'pending')->count(),
+            'active_campaigns' => Campaign::where('status', 'active')->count(),
+            'total_campaigns' => Campaign::count(),
+            'recurring_active' => RecurringPlan::where('status', 'active')->count(),
+            'receipts_count' => DonationReceipt::count(),
+        ];
+        $this->stats['net_balance'] = $this->stats['paid_total'] - $this->stats['expense_total'];
 
-                // Create notification payload
-                $payload = json_encode([
-                    'title' => 'Welcome Guest!',
-                    'body' => 'This is a test notification for guest users',
-                    'icon' => '/logo.png',
-                    'badge' => '/logo.png',
-                    'data' => [
-                        'url' => '/',
-                        'timestamp' => now()->toISOString(),
-                    ],
-                ]);
+        $this->recentReceipt = DonationReceipt::query()
+            ->with(['donation.paymentAttempts' => fn ($q) => $q->latest()])
+            ->latest('issued_at')
+            ->first();
 
-                // Send notification
-                $result = $webPush->sendOneNotification($subscription, $payload);
+        $this->nextRecurring = RecurringPlan::query()
+            ->where('status', 'active')
+            ->whereNotNull('next_run_at')
+            ->orderBy('next_run_at')
+            ->first();
 
-                if (!$result->isSuccess()) {
-                    \Log::error('Failed to send push notification to guest: ' . $result->getReason());
-                }
+        $this->recentDonors = Donation::query()
+            ->where('status', 'paid')
+            ->latest('paid_at')
+            ->limit(6)
+            ->get();
 
-            } catch (\Exception $e) {
-                \Log::error('Error sending push notification to guest: ' . $e->getMessage());
-            }
-        }
+        $this->topCampaigns = Campaign::query()
+            ->withSum(['donations as paid_donations_sum' => fn ($q) => $q->where('status', 'paid')], 'amount')
+            ->where('status', 'active')
+            ->orderByDesc('paid_donations_sum')
+            ->limit(3)
+            ->get();
 
-        // Flush any remaining notifications
-        foreach ($webPush->flush() as $report) {
-            if (!$report->isSuccess()) {
-                \Log::error('Push notification failed: ' . $report->getReason());
-            }
-        }
+        $this->paymentSplit = PaymentAttempt::query()
+            ->selectRaw('gateway, count(*) as count, sum(amount) as total')
+            ->where('status', 'success')
+            ->groupBy('gateway')
+            ->get()
+            ->mapWithKeys(function ($row) {
+                return [$row->gateway => ['count' => (int) $row->count, 'total' => (float) $row->total]];
+            })
+            ->toArray();
     }
 };

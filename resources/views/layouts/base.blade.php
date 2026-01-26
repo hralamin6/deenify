@@ -154,10 +154,9 @@
                 document.addEventListener('DOMContentLoaded', showSessionToasts);
                 document.addEventListener('livewire:navigated', showSessionToasts);
             </script>
-            @php
-                session()->forget('toast_success');
-                session()->forget('toast_error');
-            @endphp
+            @php(session()->forget('toast_success'))
+            @php(session()->forget('toast_error'))
+            
         @endif
 
         @RegisterServiceWorkerScript

@@ -33,4 +33,9 @@ class PaymentAttempt extends Model
     {
         return $this->belongsTo(Donation::class);
     }
+
+    public function manualPaymentProof()
+    {
+        return $this->hasOne(ManualPaymentProof::class);
+    }
 }

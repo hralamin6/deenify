@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a087edf2458f4797ff88c3bc7dc049f9",
+    "content-hash": "1bf727213af35500063cc797ed76a61c",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -4976,6 +4976,67 @@
             "time": "2025-12-14T04:43:48+00:00"
         },
         {
+            "name": "raziul/shurjopay-laravel",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/iRaziul/shurjopay-laravel.git",
+                "reference": "73ff3e8a5ce53e4e2422d2965fb5378916992e91"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/iRaziul/shurjopay-laravel/zipball/73ff3e8a5ce53e4e2422d2965fb5378916992e91",
+                "reference": "73ff3e8a5ce53e4e2422d2965fb5378916992e91",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Shurjopay": "Raziul\\Shurjopay\\Facades\\Shurjopay"
+                    },
+                    "providers": [
+                        "Raziul\\Shurjopay\\ShurjopayServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Raziul\\Shurjopay\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Raziul Islam",
+                    "email": "raziul.cse@gmail.com"
+                }
+            ],
+            "description": "ShurjoPay payment gateway integration for Laravel.",
+            "keywords": [
+                "payment gateway",
+                "shurjopay",
+                "shurjopay gateway",
+                "shurjopay laravel",
+                "shurjopay payment gateway laravel",
+                "shurjopay php"
+            ],
+            "support": {
+                "issues": "https://github.com/iRaziul/shurjopay-laravel/issues",
+                "source": "https://github.com/iRaziul/shurjopay-laravel/tree/v1.0.0"
+            },
+            "time": "2022-06-16T18:08:57+00:00"
+        },
+        {
             "name": "robsontenorio/mary",
             "version": "2.6.0",
             "source": {
@@ -5060,6 +5121,72 @@
                 }
             ],
             "time": "2026-01-14T20:27:28+00:00"
+        },
+        {
+            "name": "shipu/php-aamarpay-payment",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Shipu/php-aamarpay-payment.git",
+                "reference": "814ae012f22b7c7c74f4a413f0a78377842a2d66"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Shipu/php-aamarpay-payment/zipball/814ae012f22b7c7c74f4a413f0a78377842a2d66",
+                "reference": "814ae012f22b7c7c74f4a413f0a78377842a2d66",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.2|^7.0",
+                "php": ">=5.6.4"
+            },
+            "require-dev": {
+                "symfony/var-dumper": "^4.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Aamarpay": "Shipu\\Aamarpay\\Facades\\Aamarpay"
+                    },
+                    "providers": [
+                        "Shipu\\Aamarpay\\AamarpayServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Shipu\\Aamarpay\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "CC-BY-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Shipu Ahamed",
+                    "email": "shipuahamed01@gmail.com"
+                }
+            ],
+            "description": "PHP client for Aamarpay Payment Gateway API",
+            "keywords": [
+                "aamarpay",
+                "api",
+                "gateway",
+                "laravel",
+                "lumen",
+                "php",
+                "php-aamarpay"
+            ],
+            "support": {
+                "issues": "https://github.com/Shipu/php-aamarpay-payment/issues",
+                "source": "https://github.com/Shipu/php-aamarpay-payment/tree/v2.0.0"
+            },
+            "time": "2021-08-09T21:15:28+00:00"
         },
         {
             "name": "spatie/db-dumper",

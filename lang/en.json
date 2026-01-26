@@ -341,5 +341,13 @@
     "⚙️ Artisan Command Runner": "⚙️ Artisan Command Runner",
     "📁 Files Only": "📁 Files Only",
     "📦 Database + Files": "📦 Database + Files",
-    "🗃️ Database Only": "🗃️ Database Only"
+    "🗃️ Database Only": "🗃️ Database Only",
+    "Select Payment Gateway": "Select Payment Gateway",
+    "ShurjoPay": "ShurjoPay",
+    "AamarPay": "AamarPay",
+    "bKash, Nagad, Cards & more": "bKash, Nagad, Cards & more",
+    "All major payment methods": "All major payment methods",
+    "SSL Encrypted & PCI Compliant": "SSL Encrypted & PCI Compliant",
+    "ShurjoPay - bKash, Nagad, Cards": "ShurjoPay - bKash, Nagad, Cards",
+    "AamarPay - All major methods": "AamarPay - All major methods"
 }

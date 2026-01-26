@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'payment/aamarpay/callback',
+            'payment/aamarpay/cancel',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

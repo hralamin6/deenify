@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('payment_attempts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('donation_id')->constrained('donations')->cascadeOnDelete();
-            $table->enum('gateway', ['bkash', 'nagad', 'sslcommerz']);
-            $table->enum('status', ['initiated', 'pending', 'success', 'failed', 'cancelled'])->default('initiated');
+            $table->enum('gateway', ['bkash', 'nagad', 'rocket', 'aamarpay', 'shurjopay']);
+            $table->enum('status', ['initiated', 'pending', 'pending_verification', 'success', 'failed', 'cancelled'])->default('initiated');
             $table->decimal('amount', 12, 2);
             $table->string('currency', 3)->default('BDT');
             $table->string('provider_reference')->nullable();

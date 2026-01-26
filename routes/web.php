@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-require __DIR__.'/auth.php'; 
+require __DIR__.'/auth.php';
 
 Route::livewire('/', 'web::home')->name('web.home');
 Route::livewire('/campaigns', 'web::campaigns')->name('web.campaigns');
@@ -41,3 +41,11 @@ Route::get('api/push/status', [\App\Http\Controllers\PushSubscriptionController:
 Route::get('api/push/vapid-key', [\App\Http\Controllers\PushSubscriptionController::class, 'vapidPublicKey'])->name('push.vapid-key');
 
 Route::livewire('{slug}', 'web::page')->name('web.page');
+
+// Payment routes
+Route::get('payment/shurjopay/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.shurjopay.callback');
+Route::get('payment/shurjopay/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.shurjopay.cancel');
+
+Route::get('payment/aamarpay/redirect', [\App\Http\Controllers\PaymentController::class, 'aamarpayRedirect'])->name('payment.aamarpay.redirect');
+Route::post('payment/aamarpay/callback', [\App\Http\Controllers\PaymentController::class, 'aamarpayCallback'])->name('payment.aamarpay.callback');
+Route::post('payment/aamarpay/cancel', [\App\Http\Controllers\PaymentController::class, 'aamarpayCancel'])->name('payment.aamarpay.cancel');

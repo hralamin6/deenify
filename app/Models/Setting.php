@@ -14,12 +14,25 @@ class Setting extends Model implements HasMedia
   protected $fillable = ['key', 'value'];
   public function registerMediaCollections(): void
   {
-    $this->addMediaCollection('logo')->singleFile()->registerMediaConversions(function (Media $media = null) {
-      $this->addMediaConversion('thumb')->quality('50')->nonQueued();
-    });
-    $this->addMediaCollection('icon')->singleFile()->registerMediaConversions(function (Media $media = null) {
-      $this->addMediaConversion('thumb')->quality('50')->nonQueued();
-    });
+    $this->addMediaCollection('logo')
+      ->useDisk('public')
+      ->singleFile()
+      ->registerMediaConversions(function (Media $media = null) {
+        $this->addMediaConversion('thumb')
+          ->width(150)
+          ->height(150)
+          ->nonQueued();
+      });
+      
+    $this->addMediaCollection('icon')
+      ->useDisk('public')
+      ->singleFile()
+      ->registerMediaConversions(function (Media $media = null) {
+        $this->addMediaConversion('thumb')
+          ->width(150)
+          ->height(150)
+          ->nonQueued();
+      });
   }
 
   public static function get($key, $default = null)

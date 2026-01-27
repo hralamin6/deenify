@@ -11,8 +11,7 @@
 <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950" x-data="{open:false}"
         x-init="
             $nextTick(() => {
-                $wire.showToast(),
-
+                $wire.showToast()
             })
         ">
     @php
@@ -226,6 +225,14 @@
                                                     @if($donation->gateway)
                                                         <span class="text-[9px] text-gray-400 mt-1 uppercase">{{ $donation->gateway }}</span>
                                                     @endif
+                                                    <button type="button"
+                                                            wire:click="downloadInvoice({{ $donation->id }})"
+                                                            wire:loading.attr="disabled"
+                                                            wire:target="downloadInvoice"
+                                                            class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
+                                                        <x-icon name="o-document-text" class="w-3 h-3" />
+                                                        {{ __('Download Invoice') }}
+                                                    </button>
                                                 </div>
                                             </div>
                                         @endforeach

@@ -1,14 +1,14 @@
 {
-    "name": "larakit",
-    "short_name": "larakit",
+    "name": "deenify",
+    "short_name": "deenify",
     "background_color": "#6777ef",
     "display": "fullscreen",
-    "description": "",
+    "description": "<p>test desc</p>",
     "theme_color": "#6777ef",
     "start_url": "/",
     "icons": [
         {
-            "src": "",
+            "src": "https://deenify.hr/storage/Setting/12//icon.png",
             "sizes": "512x512",
             "type": "image/png"
         }

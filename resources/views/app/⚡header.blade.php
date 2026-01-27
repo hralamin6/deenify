@@ -60,12 +60,10 @@ new class extends Component
 
     {{-- Brand --}}
 <div class="flex items-center gap-3">
-                <a href="{{ route('web.home') }}" wire:navigate class="flex items-center gap-3">
-                    <div class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg">
-                        <x-icon name="o-heart" class="w-6 h-6" />
-                    </div>
+                <a href="{{ route('web.home') }}" wire:navigate class="flex items-center gap-1">
+                    <x-avatar image="{{ getSettingImage('iconImage', 'icon') }}" class="w-12 h-12" />
                     <div class="block">
-                        <p class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">{{ __('Deenify') }}</p>
+                        <p class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent capitalize">{{ setting('app.name', 'Deenify') }}</p>
                     </div>
                 </a>
             </div>  </x-slot:brand>

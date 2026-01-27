@@ -29,12 +29,10 @@ new class extends Component
         <div class="flex items-center justify-between h-16">
             {{-- Logo --}}
             <div class="flex items-center gap-3">
-                <a href="{{ route('web.home') }}" wire:navigate class="flex items-center gap-3">
-                    <div class="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg">
-                        <x-icon name="o-heart" class="w-6 h-6" />
-                    </div>
+                <a href="{{ route('web.home') }}" wire:navigate class="flex items-center gap-1">
+                    <x-avatar image="{{ getSettingImage('iconImage', 'icon') }}" class="w-12 h-12" />
                     <div class="block">
-                        <p class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">{{ __('Deenify') }}</p>
+                        <p class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent capitalize">{{ setting('app.name', 'Deenify') }}</p>
                     </div>
                 </a>
             </div>
@@ -101,7 +99,7 @@ new class extends Component
                         @auth
                         <form method="POST" action="{{ route('logout') }}">
                   @csrf
-                  <button type="submit" class="btn btn-circle btn-error btn-sm hover:scale-105 transition-transform" aria-label="Logout">
+                  <button type="submit" class="btn btn-circle btn-error btn-xs hover:scale-105 transition-transform" aria-label="Logout">
                     <x-icon name="o-power" />
                   </button>
                 </form>

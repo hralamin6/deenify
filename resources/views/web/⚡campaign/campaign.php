@@ -11,6 +11,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Computed;
 use Mary\Traits\Toast;
+use misterspelik\LaravelPdf\Facades\Pdf;
 
 new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Component
 {
@@ -292,6 +293,45 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             $this->addError('amount', __('Error: ') . $e->getMessage());
         }
     }
+
+    public function downloadInvoice(int $donationId)
+    {
+        if (! auth()->check()) {
+            abort(403);
+        }
+
+        $donation = Donation::query()
+            ->with(['campaign', 'paymentAttempts' => fn ($q) => $q->latest()])
+            ->where('id', $donationId)
+            ->where('campaign_id', $this->campaign->id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $attempt = $donation->paymentAttempts->first();
+        $invoiceNumber = 'INV-' . $donation->id . '-' . $donation->created_at?->format('Ymd');
+        $filename = 'invoice_' . $donation->id . '.pdf';
+
+        $data = [
+            'donation' => $donation,
+            'campaign' => $donation->campaign,
+            'paymentGateway' => $attempt?->gateway ? strtoupper($attempt->gateway) : null,
+            'transactionId' => $attempt?->provider_reference,
+            'attemptStatus' => $attempt?->status,
+            'invoiceNumber' => $invoiceNumber,
+            'issuedAt' => now(),
+            'brandName' => config('app.name'),
+            'brandEmail' => config('mail.from.address'),
+        ];
+
+        $pdfContent = Pdf::loadView('pdf.donation-invoice', $data)->output();
+
+        return response()->streamDownload(function () use ($pdfContent) {
+            echo $pdfContent;
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
     #[Computed]
     public function userDonations()
     {

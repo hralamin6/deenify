@@ -27,18 +27,21 @@ if (! function_exists('userImage')) {
     }
 }
 if (! function_exists('getSettingImage')) {
-    function getSettingImage($key = 'branding.logo_url', $collection = 'icon', $conversion = 'thumb', $defaultUrl = 'https://placehold.co/400')
+    function getSettingImage($key = '', $collection = '', $conversion = '', $defaultUrl = 'https://placehold.co/400')
     {
-        // Use a static variable to store settings to prevent duplicate queries
-        static $settings = [];
+        // Don't use static cache - always fetch fresh to avoid stale data after uploads
+        $setting = \App\Models\Setting::where('key', $key)->first();
 
-        // Check if the setting is already retrieved in this request
-        if (! array_key_exists($key, $settings)) {
-            $settings[$key] = \App\Models\Setting::where('key', $key)->first();
+        if (!$setting) {
+            return \setting('placeHolder', $defaultUrl);
         }
 
         // Return the image URL or the default placeholder
-        return $settings[$key]?->getFirstMediaUrl($collection, $conversion) ?? \setting('placeHolder', $defaultUrl);
+        $url = $conversion 
+            ? $setting->getFirstMediaUrl($collection, $conversion)
+            : $setting->getFirstMediaUrl($collection);
+            
+        return $url ?: \setting('placeHolder', $defaultUrl);
     }
 }
 if (! function_exists('getImage')) {

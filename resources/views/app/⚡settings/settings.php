@@ -363,41 +363,27 @@ class extends Component
             'iconImageUrl' => ['nullable', 'url'],
         ]);
 
+        // Get or create settings for logo and icon
+        $logo = SettingModel::firstOrCreate(['key' => 'logoImage'], ['value' => '']);
+        $icon = SettingModel::firstOrCreate(['key' => 'iconImage'], ['value' => '']);
+
+        // Handle logo upload
         if ($this->logoImage) {
-            $path = $this->logoImage->store('brand', 'public');
-            $this->logo_url = Storage::url($path);
-        } elseif (!empty($this->logoImageUrl)) {
-            $this->logo_url = $this->logoImageUrl;
-        }
-
-        if ($this->iconImage) {
-            $path = $this->iconImage->store('brand', 'public');
-            $this->icon_url = Storage::url($path);
-        } elseif (!empty($this->iconImageUrl)) {
-            $this->icon_url = $this->iconImageUrl;
-        }
-
-        $logo = SettingModel::set('branding.logo_url', $this->logo_url);
-        $icon = SettingModel::set('branding.icon_url', $this->icon_url);
-
-        // Handle media uploads if images are present
-        if ($this->logoImage) {
-            $media = $logo->addMedia($this->logoImage->getRealPath())
-                ->usingFileName($logo->key . '.' . $this->logoImage->getClientOriginalExtension())
+             $logo->clearMediaCollection('logo');
+            $logo->addMedia($this->logoImage->getRealPath())
+                ->usingFileName('logo.' . $this->logoImage->getClientOriginalExtension())
                 ->toMediaCollection('logo');
-            $path = storage_path("app/public/" . $media->id . '/' . $media->file_name);
-            if (file_exists($path)) {
-                unlink($path);
-            }
         }
 
+        // Handle icon upload
         if ($this->iconImage) {
-            $iconMedia = $icon->addMedia($this->iconImage->getRealPath())
-                ->usingFileName($icon->key . '.' . $this->iconImage->getClientOriginalExtension())
+             $icon->clearMediaCollection('icon');
+            $icon->addMedia($this->iconImage->getRealPath())
+                ->usingFileName('icon.' . $this->iconImage->getClientOriginalExtension())
                 ->toMediaCollection('icon');
         }
 
-        // clear file inputs
+        // Clear file inputs
         $this->reset(['logoImage', 'iconImage', 'logoImageUrl', 'iconImageUrl']);
 
         // Update PWA manifest with new branding
@@ -410,7 +396,7 @@ class extends Component
             'theme_color' => '#6777ef',
             'icons' => [
                 [
-                    'src' => $this->icon_url ?: getSettingImage('branding.icon_url', 'icon'),
+                    'src' => getSettingImage('iconImage', 'icon'),
                     'sizes' => '512x512',
                     'type' => 'image/png',
                 ],

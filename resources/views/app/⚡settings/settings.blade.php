@@ -6,7 +6,7 @@
     <div class="lg:col-span-1 space-y-6">
       <x-card class="p-5">
         <div class="flex items-center gap-4"> 
-          @php($logo = $logo_url ?: url(asset('logo.png')))
+          @php($logo = getSettingImage('logoImage', 'logo'))
           <x-avatar :image="$logo" alt="App" class="w-16 h-16 ring-2 ring-primary/20" />
           <div>
             <div class="font-semibold text-base-content/90">{{ $appName ?: $name ?: config('app.name') }}</div>
@@ -177,14 +177,14 @@
 
           <div class="grid md:grid-cols-2 gap-6">
             <div class="space-y-3">
-              <x-file :label="__('Upload Logo')" wire:model="logoImage" accept="image/*" crop-after-change>
-                <x-avatar :image="$logoImage?->temporaryUrl() ?? setting('placeHolder')" alt="Logo" class="w-24 h-24 ring-4 ring-primary/20" />
+              <x-file wire:key="logoImage" :label="__('Upload Logo')" wire:model="logoImage" accept="image/*" crop-after-change>
+                <x-avatar :image="$logoImage?->temporaryUrl() ?? getSettingImage('logoImage', 'logo')" alt="Logo" class="w-24 h-24 ring-4 ring-primary/20" />
               </x-file>
               <x-input :label="__('Logo URL')" wire:model.defer="logoImageUrl" type="url" :placeholder="__('https://.../logo.png')" />
             </div>
             <div class="space-y-3">
-              <x-file :label="__('Upload Icon')" wire:model="iconImage" accept="image/*" crop-after-change>
-                <x-avatar :image="$iconImage?->temporaryUrl() ?? setting('placeHolder')" alt="Icon" class="w-24 h-24 ring-4 ring-primary/20" />
+              <x-file wire:key="iconImage" :label="__('Upload Icon')" wire:model="iconImage" accept="image/*" crop-after-change>
+                <x-avatar :image="$iconImage?->temporaryUrl() ?? getSettingImage('iconImage', 'icon')" alt="Icon" class="w-24 h-24 ring-4 ring-primary/20" />
               </x-file>
               <x-input :label="__('Icon URL')" wire:model.defer="iconImageUrl" type="url" :placeholder="__('https://.../icon.png')" />
             </div>

@@ -29,8 +29,8 @@ new #[Layout('layouts::auth')] #[Title('Create a new account')] class extends Co
             'email' => $this->email,
             'password' => Hash::make($this->password),
         ]);
-
-        event(new Registered($user));
+        $user->assignRole('user');
+        // event(new Registered($user));
 
         Auth::login($user);
         return redirect()->intended(route('web.home'));

@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/app/campaigns/', 'app::campaigns')->name('app.campaigns');
     Route::livewire('/app/expense-categories/', 'app::expense-categories')->name('app.expense-categories');
     Route::livewire('/app/expenses/', 'app::expenses')->name('app.expenses');
+    Route::livewire('/app/donations/', 'app::donations')->name('app.donations');
+    Route::livewire('/app/payment-attempts/', 'app::payment-attempts')->name('app.payment-attempts');
 
     Route::livewire('/app/notifications/', 'app::notifications')->name('app.notifications');
 

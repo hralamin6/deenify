@@ -9,6 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\Computed;
 use Mary\Traits\Toast;
 
 new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Component
@@ -30,6 +31,26 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
 
 
 
+    public function showToast(): void
+    {
+        if(session()->has('toast_success')) {
+            $this->success(session('toast_success'));
+            session()->forget('toast_success');
+        }
+        if(session()->has('toast_error')) {
+            $this->error(session('toast_error'));
+            session()->forget('toast_error');
+        }
+    }
+
+    public function hydrate()
+    {
+        if (isset($this->campaign)) {
+            $this->campaign->loadSum(['donations as paid_donations_sum' => fn ($q) => $q->where('status', 'paid')], 'amount');
+            $this->campaign->loadCount(['donations as paid_donations_count' => fn ($q) => $q->where('status', 'paid')]);
+            $this->campaign->loadSum('expenses', 'amount');
+        }
+    }
 
     public function mount(string $slug): void
     {
@@ -52,17 +73,6 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             $this->donor_name = auth()->user()->name;
             $this->donor_email = auth()->user()->email;
         }
-
-        // Check if we should show manual payment modal (after redirect)
-        if (session()->has('show_manual_payment') && session()->has('manual_payment_attempt_id')) {
-            $this->currentPaymentAttempt = session('manual_payment_attempt_id');
-            $this->gateway = session('manual_payment_gateway');
-            $this->amount = session('manual_payment_amount');
-            $this->showDonateModal = true; // Keep modal open to show manual payment form
-            
-            // Clear the session data
-            session()->forget(['show_manual_payment', 'manual_payment_attempt_id', 'manual_payment_gateway', 'manual_payment_amount']);
-        }
     }
 
     public function donate()
@@ -72,6 +82,11 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             'amount' => 'required|numeric|min:10',
             'gateway' => 'required|in:shurjopay,aamarpay,bkash,nagad,rocket',
         ];
+
+        // If manual payment, validate transaction ID immediately
+        if (in_array($this->gateway, ['bkash', 'nagad', 'rocket'])) {
+            $rules['transaction_id'] = 'required|string|max:255';
+        }
 
         // If user is not logged in, require name, email, and password
         if (!auth()->check()) {
@@ -105,6 +120,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
                     'email' => $this->donor_email,
                     'password' => Hash::make($this->donor_password),
                 ]);
+                $user->assignRole('user');
             }
             
             $userId = $user->id;
@@ -138,8 +154,6 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
 
         // Check if manual payment gateway
         if (in_array($this->gateway, ['bkash', 'nagad', 'rocket'])) {
-            // Validate transaction ID immediately
-            $this->validate(['transaction_id' => 'required|string|max:255']);
 
             // Finalize payment attempt in database BEFORE login
             $paymentAttempt->update([
@@ -154,9 +168,10 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
                 // Store success message in session for after redirect
                 // Using 'toast_success' to survive session regeneration
                 session()->put('toast_success', __('Payment proof submitted! We will verify and confirm your donation soon.'));
-                
+               
                 return redirect()->route('web.campaign', $this->campaign->slug);
             }
+            $this->userDonations();
 
             // For already logged in users
             $this->showDonateModal = false;
@@ -276,5 +291,18 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         } catch (\Exception $e) {
             $this->addError('amount', __('Error: ') . $e->getMessage());
         }
+    }
+    #[Computed]
+    public function userDonations()
+    {
+        if (!auth()->check()) {
+            return collect();
+        }
+
+        return Donation::query()
+            ->where('campaign_id', $this->campaign->id)
+            ->where('user_id', auth()->id())
+            ->orderByDesc('created_at')
+            ->get();
     }
 };

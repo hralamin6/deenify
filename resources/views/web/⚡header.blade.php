@@ -99,6 +99,12 @@ new class extends Component
                 @if (Route::has('login'))
                     <div class="hidden sm:flex items-center gap-2">
                         @auth
+                        <form method="POST" action="{{ route('logout') }}">
+                  @csrf
+                  <button type="submit" class="btn btn-circle btn-error btn-sm hover:scale-105 transition-transform" aria-label="Logout">
+                    <x-icon name="o-power" />
+                  </button>
+                </form>
                             <a wire:navigate href="{{ route('app.dashboard') }}" class="btn btn-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg">
                                 {{ __('Dashboard') }}
                             </a>
@@ -150,6 +156,13 @@ new class extends Component
             @if (Route::has('login'))
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 ">
                     @auth
+                    <form method="POST" action="{{ route('logout') }}">
+                  @csrf
+                  
+                  <button type="submit" class="block pt-1 w-full btn btn-outline border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white" aria-label="Logout">
+                    {{ __('Logout') }}             
+                     </button>
+                </form>
                         <a wire:navigate href="{{ route('app.dashboard') }}" @click="mobileMenuOpen = false" class="block pt-2 w-full btn bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg">
                             {{ __('Dashboard') }}
                         </a>

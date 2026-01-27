@@ -130,34 +130,7 @@
 
     <body>
         @yield('body')
-        <x-toast />
-        
-        {{-- Session to Toast Bridge --}}
-        @if(session()->has('toast_success') || session()->has('toast_error'))
-            <script>
-                window.showSessionToasts = function() {
-                    @if(session()->has('toast_success'))
-                        window.dispatchEvent(new CustomEvent('mary-toast', { 
-                            detail: { title: "{{ session('toast_success') }}", type: "success", icon: "o-check-circle", timeout: 5000 } 
-                        }));
-                    @endif
-                    @if(session()->has('toast_error'))
-                        window.dispatchEvent(new CustomEvent('mary-toast', { 
-                            detail: { title: "{{ session('toast_error') }}", type: "error", icon: "o-x-circle", timeout: 5000 } 
-                        }));
-                    @endif
-                    
-                    // Cleanup session via AJAX or wait for next load
-                    // For now, we rely on the server-side forget below
-                };
-
-                document.addEventListener('DOMContentLoaded', showSessionToasts);
-                document.addEventListener('livewire:navigated', showSessionToasts);
-            </script>
-            @php(session()->forget('toast_success'))
-            @php(session()->forget('toast_error'))
-            
-        @endif
+      
 
         @RegisterServiceWorkerScript
 

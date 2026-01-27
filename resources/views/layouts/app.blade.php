@@ -52,6 +52,12 @@
             @can('expenses.view')
             <x-menu-item :title="__('Expenses')" icon="o-receipt-percent" :link="route('app.expenses')" route="app.expenses"/>
             @endcan
+            @can('donations.view')
+            <x-menu-item :title="__('Donations')" icon="o-banknotes" :link="route('app.donations')" route="app.donations"/>
+            @endcan
+            @can('payment-attempts.view')
+            <x-menu-item :title="__('Payment Attempts')" icon="o-check-circle" :link="route('app.payment-attempts')" route="app.payment-attempts"/>
+            @endcan
             <x-menu-sub title="User Settings" icon="o-user">
               <x-menu-item :title="__('Profile')" icon="o-user-circle" :link="route('app.profile')" route="app.profile"/>
               <x-menu-item :title="__('Chat')" icon="o-chat-bubble-left-right" :link="route('app.chat')" route="app.chat" />

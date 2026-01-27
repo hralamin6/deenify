@@ -1,4 +1,20 @@
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950">
+@section('title', $campaign->title)
+@section('image', getImage($campaign, 'cover', 'thumb'))
+@section('description', Str::limit(strip_tags($campaign->description), 333))
+@php
+        $hero = $campaign->getFirstMediaUrl('postImages', 'avatar');
+        $words = str_word_count(strip_tags($campaign->description ?? ''));
+        $shareUrl = urlencode(request()->fullUrl());
+        $shareText = urlencode($campaign->title);
+
+    @endphp
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950" x-data="{open:false}"
+        x-init="
+            $nextTick(() => {
+                $wire.showToast(),
+
+            })
+        ">
     @php
         $raised = (float) ($campaign->paid_donations_sum ?? 0);
         $expense = (float) ($campaign->expenses_sum ?? 0);
@@ -140,11 +156,88 @@
                                 <x-icon name="o-heart" class="w-5 h-5" />
                                 {{ __('Donate Now') }}
                             </button>
-                            <button class="w-full btn btn-outline border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white">
+                            <button @click="open=!open" @keydown.escape.window="open=false"  class="w-full btn btn-outline border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white">
                                 <x-icon name="o-share" class="w-5 h-5" />
                                 {{ __('Share Campaign') }}
                             </button>
                         </div>
+                            
+
+                        <div class="relative">
+                            <div x-cloak x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 translate-y-2" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-2" @click.outside="open=false" class="absolute right-0 bottom-full mb-4 w-72 p-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-2xl z-50">
+                                <div class="px-2 pb-2 mb-2 border-b border-gray-100 dark:border-gray-700">
+                                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ __('Spread the Word') }}</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors group">
+                                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">Facebook</span>
+                                    </a>
+                                    <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors group">
+                                        <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">WhatsApp</span>
+                                    </a>
+                                    <a href="https://x.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group">
+                                        <svg class="w-6 h-6 text-gray-900 dark:text-white group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.134l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-gray-600 dark:text-gray-400">X (Twitter)</span>
+                                    </a>
+                                    <button type="button" @click="
+                                        if (navigator.share) {
+                                            navigator.share({ title: decodeURIComponent('{{ $shareText }}'), url: decodeURIComponent('{{ $shareUrl }}') }).catch(()=>{});
+                                        } else {
+                                            navigator.clipboard.writeText(decodeURIComponent('{{ $shareUrl }}'));
+                                            alert('Link copied to clipboard!');
+                                        }
+                                    " class="flex flex-col items-center justify-center p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors group">
+                                        <x-icon name="o-share" class="w-6 h-6 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                                        <span class="mt-1 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ __('System Share') }}</span>
+                                    </button>
+                                </div>
+                                <button @click="navigator.clipboard.writeText(decodeURIComponent('{{ $shareUrl }}')); alert('Link copied!');" class="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 flex items-center justify-center gap-2 transition-all">
+                                    <x-icon name="o-link" class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                    <span class="text-xs font-bold text-gray-600 dark:text-gray-400">{{ __('Copy Campaign Link') }}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- My Donations Section --}}
+                        @auth
+                            @if($this->userDonations->isNotEmpty())
+                                <div class="mt-6 rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+                                    <div class="absolute top-0 right-0 p-4 opacity-5">
+                                        <x-icon name="o-heart" class="w-20 h-20" />
+                                    </div>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                        <x-icon name="o-sparkles" class="w-5 h-5 text-amber-500" />
+                                        {{ __('My Contribution') }}
+                                    </h3>
+                                    <div class="space-y-3">
+                                        @foreach($this->userDonations as $donation)
+                                            <div class="p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-800/50 flex items-center justify-between group hover:bg-white dark:hover:bg-gray-700 transition-all">
+                                                <div>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $donation->created_at->format('M d, Y') }}</p>
+                                                    <p class="text-sm font-bold text-gray-900 dark:text-white">৳{{ number_format($donation->amount, 0) }}</p>
+                                                </div>
+                                                <div class="flex flex-col items-end">
+                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-tighter
+                                                        {{ $donation->status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' }}">
+                                                        {{ $donation->status }}
+                                                    </span>
+                                                    @if($donation->gateway)
+                                                        <span class="text-[9px] text-gray-400 mt-1 uppercase">{{ $donation->gateway }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                        <div class="pt-2 text-center">
+                                            <p class="text-[10px] text-gray-500 dark:text-gray-400 italic">
+                                                {{ __('Total given') }}: <span class="font-bold text-indigo-600 dark:text-indigo-400">৳{{ number_format($this->userDonations->where('status', 'paid')->sum('amount'), 0) }}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endauth
 
                         <div class="mt-6 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
                             <p class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold mb-2">{{ __('Payment Methods') }}</p>
@@ -232,113 +325,98 @@
 
             {{-- Payment Gateway Selection --}}
             <div x-data="{ currentGateway: @entangle('gateway').live }" class="space-y-4">
-                <label class="text-sm font-semibold text-gray-900 dark:text-white">{{ __('Select Payment Gateway') }}</label>
-
                 {{-- Automated Gateways Section --}}
                 <div class="space-y-2">
                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">{{ __('Automated Payment') }}</div>
                     
-                    <label class="flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all" 
-                        :class="currentGateway === 'shurjopay' ? 'border-primary bg-primary/5' : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'">
-                        <input type="radio" x-model="currentGateway" value="shurjopay" class="radio radio-primary">
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('ShurjoPay') }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('bKash, Nagad, Cards & more') }}</p>
-                        </div>
-                        <img src="https://shurjopay.com.bd/shurjopay-logo.png" alt="ShurjoPay" class="h-6" />
-                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all" 
+                            :class="currentGateway === 'shurjopay' ? 'border-primary bg-primary/5' : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'">
+                            <input type="radio" x-model="currentGateway" value="shurjopay" class="radio radio-primary radio-sm hidden">
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('ShurjoPay') }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('bKash, Nagad, Cards') }}</p>
+                            </div>
+                        </label>
 
-                    <label class="flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all"
-                        :class="currentGateway === 'aamarpay' ? 'border-primary bg-primary/5' : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'">
-                        <input type="radio" x-model="currentGateway" value="aamarpay" class="radio radio-primary">
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('AamarPay') }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('All major payment methods') }}</p>
-                        </div>
-                        <img src="https://aamarpay.com/images/logo.png" alt="AamarPay" class="h-6" />
-                    </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                            :class="currentGateway === 'aamarpay' ? 'border-primary bg-primary/5' : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'">
+                            <input type="radio" x-model="currentGateway" value="aamarpay" class="radio radio-primary radio-sm hidden">
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('AamarPay') }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('All major methods') }}</p>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
                 {{-- Manual Payment Section --}}
                 <div class="space-y-2">
                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-4 px-1">{{ __('Manual Payment (Send Money)') }}</div>
                     
-                    {{-- bKash --}}
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all"
+                    <div class="grid grid-cols-3 gap-2">
+                        {{-- bKash --}}
+                        <label class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
                             :class="currentGateway === 'bkash' ? 'border-pink-600 bg-pink-50 dark:bg-pink-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-pink-300'">
-                            <input type="radio" x-model="currentGateway" value="bkash" class="radio radio-secondary">
-                            <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('bKash') }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Send money manually') }}</p>
-                            </div>
+                            <input type="radio" x-model="currentGateway" value="bkash" class="radio radio-secondary radio-sm hidden">
                             <div class="w-10 h-10 rounded-lg bg-pink-600 flex items-center justify-center text-white font-bold text-xs">BK</div>
-                        </label>
-                        
-                        <div x-show="currentGateway === 'bkash'" x-transition class="ml-4 p-4 rounded-xl bg-pink-50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-800 space-y-3">
-                            <div class="text-sm text-pink-700 dark:text-pink-300 space-y-1">
-                                <p><strong>1.</strong> Open bKash app and select <span class="font-bold">Send Money</span></p>
-                                <p><strong>2.</strong> Send <span class="font-bold">৳{{ number_format($amount ?: 0, 2) }}</span> to <span class="font-mono font-bold bg-white dark:bg-gray-800 px-2 rounded border border-pink-200 select-all">{{ env('BKASH_ACCOUNT_NUMBER', '01700000000') }}</span></p>
-                                <p><strong>3.</strong> Enter the Transaction ID below</p>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('bKash') }}</p>
                             </div>
-                            <x-input wire:model="transaction_id" :label="__('Transaction ID')" icon="o-hashtag" placeholder="TrxID" required />
-                        </div>
-                    </div>
+                        </label>
 
-                    {{-- Nagad --}}
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all"
+                        {{-- Nagad --}}
+                        <label class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
                             :class="currentGateway === 'nagad' ? 'border-orange-600 bg-orange-50 dark:bg-orange-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-orange-300'">
-                            <input type="radio" x-model="currentGateway" value="nagad" class="radio radio-warning">
-                            <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Nagad') }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Send money manually') }}</p>
-                            </div>
+                            <input type="radio" x-model="currentGateway" value="nagad" class="radio radio-warning radio-sm hidden">
                             <div class="w-10 h-10 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-xs">NG</div>
-                        </label>
-                        
-                        <div x-show="currentGateway === 'nagad'" x-transition class="ml-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800 space-y-3">
-                            <div class="text-sm text-orange-700 dark:text-orange-300 space-y-1">
-                                <p><strong>1.</strong> Open Nagad app and select <span class="font-bold">Send Money</span></p>
-                                <p><strong>2.</strong> Send <span class="font-bold">৳{{ number_format($amount ?: 0, 2) }}</span> to <span class="font-mono font-bold bg-white dark:bg-gray-800 px-2 rounded border border-orange-200 select-all">{{ env('NAGAD_ACCOUNT_NUMBER', '01700000000') }}</span></p>
-                                <p><strong>3.</strong> Enter the Transaction ID below</p>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Nagad') }}</p>
                             </div>
-                            <x-input wire:model="transaction_id" :label="__('Transaction ID')" icon="o-hashtag" placeholder="TrxID" required />
-                        </div>
+                        </label>
+
+                        {{-- Rocket --}}
+                        <label class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                            :class="currentGateway === 'rocket' ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'">
+                            <input type="radio" x-model="currentGateway" value="rocket" class="radio radio-accent radio-sm hidden">
+                            <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white font-bold text-xs">RK</div>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Rocket') }}</p>
+                            </div>
+                        </label>
                     </div>
 
-                    {{-- Rocket --}}
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all"
-                            :class="currentGateway === 'rocket' ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'">
-                            <input type="radio" x-model="currentGateway" value="rocket" class="radio radio-accent">
-                            <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Rocket') }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Send money manually') }}</p>
-                            </div>
-                            <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white font-bold text-xs">RK</div>
-                        </label>
-                        
-                        <div x-show="currentGateway === 'rocket'" x-transition class="ml-4 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800 space-y-3">
-                            <div class="text-sm text-purple-700 dark:text-purple-300 space-y-1">
-                                <p><strong>1.</strong> Open Rocket app and select <span class="font-bold">Send Money</span></p>
-                                <p><strong>2.</strong> Send <span class="font-bold">৳{{ number_format($amount ?: 0, 2) }}</span> to <span class="font-mono font-bold bg-white dark:bg-gray-800 px-2 rounded border border-purple-200 select-all">{{ env('ROCKET_ACCOUNT_NUMBER', '01700000000') }}</span></p>
-                                <p><strong>3.</strong> Enter the Transaction ID below</p>
-                            </div>
-                            <x-input wire:model="transaction_id" :label="__('Transaction ID')" icon="o-hashtag" placeholder="TrxID" required />
+                    {{-- Transaction ID Input (shown for all manual methods) --}}
+                    <div x-show="['bkash', 'nagad', 'rocket'].includes(currentGateway)" x-transition 
+                        class="p-4 rounded-xl border space-y-3"
+                        :class="{
+                            'bg-pink-50 dark:bg-pink-900/10 border-pink-100 dark:border-pink-800': currentGateway === 'bkash',
+                            'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-800': currentGateway === 'nagad',
+                            'bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800': currentGateway === 'rocket'
+                        }">
+                        <div class="text-sm space-y-1"
+                            :class="{
+                                'text-pink-700 dark:text-pink-300': currentGateway === 'bkash',
+                                'text-orange-700 dark:text-orange-300': currentGateway === 'nagad',
+                                'text-purple-700 dark:text-purple-300': currentGateway === 'rocket'
+                            }">
+                            <p><strong>1.</strong> <span x-text="currentGateway === 'bkash' ? 'Open bKash app' : currentGateway === 'nagad' ? 'Open Nagad app' : 'Open Rocket app'"></span> and select <span class="font-bold">Send Money</span></p>
+                            <p><strong>2.</strong> Send <span class="font-bold">৳{{ number_format($amount ?: 0, 2) }}</span> to 
+                                <span class="font-mono font-bold bg-white dark:bg-gray-800 px-2 rounded border select-all"
+                                    :class="{
+                                        'border-pink-200': currentGateway === 'bkash',
+                                        'border-orange-200': currentGateway === 'nagad',
+                                        'border-purple-200': currentGateway === 'rocket'
+                                    }"
+                                    x-text="currentGateway === 'bkash' ? '{{ env('BKASH_ACCOUNT_NUMBER', '01700000000') }}' : currentGateway === 'nagad' ? '{{ env('NAGAD_ACCOUNT_NUMBER', '01700000000') }}' : '{{ env('ROCKET_ACCOUNT_NUMBER', '01700000000') }}'"></span>
+                            </p>
+                            <p><strong>3.</strong> Enter the Transaction ID below</p>
                         </div>
+                        <x-input wire:model="transaction_id" :label="__('Transaction ID')" icon="o-hashtag" placeholder="TrxID" required />
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
-                <div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                    <x-icon name="o-shield-check" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Secure Payment') }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('SSL Encrypted & PCI Compliant') }}</p>
-                </div>
-            </div>
         </div>
 
         <x-slot:actions>
@@ -347,4 +425,5 @@
             <x-button :label="__('Submit Donation')" icon="o-heart" wire:click="donate" class="btn-primary" spinner="donate" />
         </x-slot:actions>
     </x-modal>
+    
 </div>

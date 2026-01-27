@@ -31,5 +31,8 @@
             </div>
         </div>
     </footer>
+
+        <x-toast />
+
     </div>
 @endsection

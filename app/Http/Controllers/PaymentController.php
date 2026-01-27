@@ -34,9 +34,8 @@ class PaymentController extends Controller
                     'status' => 'paid',
                     'paid_at' => now(),
                 ]);
-
-                return redirect()->route('web.campaign', $donation->campaign->slug)
-                    ->with('success', __('Donation successful! Thank you for your support.'));
+                session()->put('toast_success', __('Payment successful!'));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
             } else {
                 // Failed
                 $paymentAttempt->update([
@@ -46,15 +45,12 @@ class PaymentController extends Controller
                 ]);
 
                 $donation->update(['status' => 'failed']);
-
-                return redirect()->route('web.campaign', $donation->campaign->slug)
-                    ->with('error', __('Donation failed: ').$response->message());
+                session()->put('toast_error', __('Payment failed!'));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
             }
         } catch (\Exception $e) {
-            dd($e);
-
-            //          return redirect()->route('web.home')
-            //                ->with('error', __('An error occurred during payment verification.'));
+           session()->put('toast_error', __('Payment failed! '.$e));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
         }
     }
 
@@ -72,11 +68,11 @@ class PaymentController extends Controller
             $donation = $paymentAttempt->donation;
             $donation->update(['status' => 'cancelled']);
 
-            return redirect()->route('web.campaign', $donation->campaign->slug)
-                ->with('warning', __('Donation was cancelled.'));
+                session()->put('toast_error', __('Payment cancelled!'));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
         }
 
-        return redirect()->route('web.home')->with('warning', __('Donation was cancelled.'));
+        return redirect()->route('web.home');
     }
 
     public function aamarpayRedirect()
@@ -84,7 +80,7 @@ class PaymentController extends Controller
         $paymentData = session()->get('aamarpay_payment');
 
         if (! $paymentData) {
-            return redirect()->route('web.home')->with('error', __('Payment session expired.'));
+            return redirect()->route('web.home');
         }
 
         session()->forget('aamarpay_payment');
@@ -149,8 +145,8 @@ class PaymentController extends Controller
             
             if (!$orderId) {
                 \Log::error('AamarPay: No mer_txnid in request');
-                return redirect()->route('web.home')
-                    ->with('error', __('Invalid payment response.'));
+                session()->put('toast_error', __('AamarPay: No mer_txnid in request'));
+                return redirect()->route('web.home');
             }
 
             $paymentAttempt = PaymentAttempt::where('provider_reference', $orderId)->firstOrFail();
@@ -194,15 +190,8 @@ class PaymentController extends Controller
 
                 \Log::info('AamarPay: Payment successful', ['donation_id' => $donation->id]);
 
-                // Re-authenticate the user if they were logged in before payment
-                // This is necessary because cross-site POST requests don't include session cookies (SameSite=lax)
-                if ($donation->user_id && ! auth()->check()) {
-                    auth()->loginUsingId($donation->user_id);
-                    session()->regenerate();
-                }
-
-                return redirect()->route('web.campaign', $donation->campaign->slug)
-                    ->with('success', __('Donation successful! Thank you for your support.'));
+                session()->put('toast_success', __('Payment successful!'));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
             } else {
                 \Log::warning('AamarPay: Payment validation failed', [
                     'request_data' => $request->all(),
@@ -217,13 +206,12 @@ class PaymentController extends Controller
                 $donation->update(['status' => 'failed']);
 
                 // Re-authenticate the user if they were logged in before payment
-                if ($donation->user_id && ! auth()->check()) {
-                    auth()->loginUsingId($donation->user_id);
-                    session()->regenerate();
-                }
-
-                return redirect()->route('web.campaign', $donation->campaign->slug)
-                    ->with('error', __('Donation failed. Please try again.'));
+                // if ($donation->user_id && ! auth()->check()) {
+                //     auth()->loginUsingId($donation->user_id);
+                //     session()->regenerate();
+                // }
+                session()->put('toast_error', __('Payment failed!'));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
             }
         } catch (\Exception $e) {
             \Log::error('AamarPay Callback Error', [
@@ -231,8 +219,8 @@ class PaymentController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return redirect()->route('web.home')
-                ->with('error', __('An error occurred during payment verification.'));
+                session()->put('toast_error', __('Payment failed! '.$e));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
         }
     }
 
@@ -256,10 +244,10 @@ class PaymentController extends Controller
                 session()->regenerate();
             }
 
-            return redirect()->route('web.campaign', $donation->campaign->slug)
-                ->with('warning', __('Donation was cancelled.'));
+                session()->put('toast_error', __('Payment cancelled! '));
+                return redirect()->route('web.campaign', $donation->campaign->slug);
         }
 
-        return redirect()->route('web.home')->with('warning', __('Donation was cancelled.'));
+        return redirect()->route('web.home');
     }
 }

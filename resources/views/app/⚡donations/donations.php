@@ -2,6 +2,7 @@
 
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -32,11 +33,23 @@ new #[Title('Donations')] #[Layout('layouts.app')] class extends Component
 
     public $campaignId = null;
 
+    public $donationCampaignId = null;
+
+    public $userId = null;
+
     public $status = 'pending';
 
     public $paid_at = null;
 
     public $notes = '';
+
+    public $donor_name = '';
+
+    public $donor_email = '';
+
+    public $amount = 0;
+
+    public $currency = 'BDT';
 
     public $donation = null;
 
@@ -63,6 +76,14 @@ new #[Title('Donations')] #[Layout('layouts.app')] class extends Component
         return Campaign::query()
             ->orderBy('title')
             ->get(['id', 'title']);
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
     }
 
     public function getDataProperty()
@@ -179,8 +200,61 @@ new #[Title('Donations')] #[Layout('layouts.app')] class extends Component
 
     public function resetData(): void
     {
-        $this->reset(['status', 'paid_at', 'notes', 'donation']);
+        $this->reset([
+            'donationCampaignId', 'userId', 'donor_name', 'donor_email',
+            'amount', 'currency', 'status', 'paid_at', 'notes', 'donation',
+        ]);
         $this->status = 'pending';
+        $this->currency = 'BDT';
+        $this->amount = 0;
+    }
+
+    public function saveData(): void
+    {
+        $this->authorize('donations.create');
+
+        if ($this->userId && (empty($this->donor_name) || empty($this->donor_email))) {
+            $user = User::find($this->userId);
+            $this->donor_name = $this->donor_name ?: $user?->name;
+            $this->donor_email = $this->donor_email ?: $user?->email;
+        }
+
+        $data = $this->validate([
+            'donationCampaignId' => 'required|exists:campaigns,id',
+            'userId' => 'nullable|exists:users,id',
+            'donor_name' => 'required|string|max:255',
+            'donor_email' => 'nullable|email|max:255',
+            'amount' => 'required|numeric|min:1',
+            'currency' => 'required|string|max:3',
+            'status' => 'required|in:pending,paid,failed,cancelled',
+            'paid_at' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($data['status'] === 'paid' && empty($data['paid_at'])) {
+            $data['paid_at'] = now();
+        }
+
+        if ($data['status'] !== 'paid') {
+            $data['paid_at'] = null;
+        }
+
+        $donation = Donation::create([
+            'campaign_id' => $data['donationCampaignId'],
+            'user_id' => $data['userId'],
+            'donor_name' => $data['donor_name'],
+            'donor_email' => $data['donor_email'],
+            'amount' => $data['amount'],
+            'currency' => $data['currency'],
+            'status' => $data['status'],
+            'paid_at' => $data['paid_at'],
+            'notes' => $data['notes'],
+        ]);
+
+        $this->dispatch('dataAdded', dataId: "item-id-{$donation->id}");
+        $this->resetPage();
+        $this->success(__('Donation created successfully'));
+        $this->resetData();
     }
 
     public function deleteSingle(Donation $donation): void

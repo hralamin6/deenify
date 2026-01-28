@@ -12,6 +12,12 @@
                         <x-badge value="{{ ($search ? 1 : 0) + ($itemStatus ? 1 : 0) + ($campaignId ? 1 : 0) }}" class="badge-primary badge-sm" />
                     @endif
                 </x-button>
+                @can('donations.create')
+                    <x-button @click="toggleModal" icon="o-plus" class="btn-primary btn-sm">
+                        <span class="hidden sm:inline">{{ __('Add Donation') }}</span>
+                        <span class="sm:hidden">{{ __('Add') }}</span>
+                    </x-button>
+                @endcan
             </div>
         </x-slot:middle>
     </x-header>
@@ -244,14 +250,15 @@
 
             <div class="flex items-center justify-between p-6 border-b dark:border-gray-700">
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    {{ __('Donation Details') }}
+                    <span x-show="!editMode">{{ __('Add Donation') }}</span>
+                    <span x-show="editMode">{{ __('Donation Details') }}</span>
                 </h3>
                 <button @click="closeModal" type="button" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
                     <x-icon name="o-x-mark" class="w-6 h-6" />
                 </button>
             </div>
 
-            <form @submit.prevent="$wire.editData()">
+            <form @submit.prevent="editMode ? $wire.editData() : $wire.saveData()">
                 <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                     @php
                         $detailAttempt = $donation?->paymentAttempts?->first();
@@ -259,21 +266,81 @@
                         $detailSymbol = $detailCurrency === 'BDT' ? '৳' : $detailCurrency;
                     @endphp
 
-                    <div class="grid gap-4 md:grid-cols-3">
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Campaign') }}</p>
-                            <p class="mt-1 font-semibold text-gray-900 dark:text-white">{{ $donation?->campaign?->title ?? '-' }}</p>
-                            <p class="text-xs opacity-60">#{{ $donation?->campaign_id ?? '-' }}</p>
+                    @if($donation)
+                        <div class="grid gap-4 md:grid-cols-3">
+                            <div class="p-4 border rounded-lg dark:border-gray-700">
+                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Campaign') }}</p>
+                                <p class="mt-1 font-semibold text-gray-900 dark:text-white">{{ $donation?->campaign?->title ?? '-' }}</p>
+                                <p class="text-xs opacity-60">#{{ $donation?->campaign_id ?? '-' }}</p>
+                            </div>
+                            <div class="p-4 border rounded-lg dark:border-gray-700">
+                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Donor') }}</p>
+                                <p class="mt-1 font-semibold text-gray-900 dark:text-white">{{ $donation?->donor_name ?? '-' }}</p>
+                                <p class="text-xs opacity-60">{{ $donation?->donor_email ?? __('Guest') }}</p>
+                            </div>
+                            <div class="p-4 border rounded-lg dark:border-gray-700">
+                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Amount') }}</p>
+                                <p class="mt-1 font-semibold text-gray-900 dark:text-white">{{ $detailSymbol }} {{ $donation?->amount ? number_format($donation->amount, 0) : '-' }}</p>
+                                <p class="text-xs opacity-60">{{ strtoupper($detailCurrency) }}</p>
+                            </div>
                         </div>
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Donor') }}</p>
-                            <p class="mt-1 font-semibold text-gray-900 dark:text-white">{{ $donation?->donor_name ?? '-' }}</p>
-                            <p class="text-xs opacity-60">{{ $donation?->donor_email ?? __('Guest') }}</p>
+                    @endif
+
+                    <div x-show="!editMode" x-cloak class="space-y-6">
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <x-select
+                                wire:model.defer="donationCampaignId"
+                                :label="__('Campaign')"
+                                icon="o-flag"
+                                :options="$this->campaigns->map(fn ($c) => ['id' => $c->id, 'name' => $c->title])->toArray()"
+                                required />
+
+                            <x-select
+                                wire:model.defer="userId"
+                                :label="__('User (Optional)')"
+                                icon="o-user"
+                                :options="array_merge([[ 'id' => null, 'name' => __('Guest') ]], $this->users->map(fn ($u) => ['id' => $u->id, 'name' => $u->name.' · '.$u->email])->toArray())" />
                         </div>
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Amount') }}</p>
-                            <p class="mt-1 font-semibold text-gray-900 dark:text-white">{{ $detailSymbol }} {{ $donation?->amount ? number_format($donation->amount, 0) : '-' }}</p>
-                            <p class="text-xs opacity-60">{{ strtoupper($detailCurrency) }}</p>
+
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <x-input
+                                wire:model.defer="donor_name"
+                                :label="__('Donor Name')"
+                                icon="o-user"
+                                required />
+
+                            <x-input
+                                wire:model.defer="donor_email"
+                                :label="__('Donor Email')"
+                                type="email"
+                                icon="o-envelope" />
+                        </div>
+
+                        <div class="grid gap-4 md:grid-cols-3">
+                            <x-input
+                                wire:model.defer="amount"
+                                type="number"
+                                :label="__('Amount')"
+                                icon="o-currency-dollar"
+                                min="1" />
+
+                            <x-input
+                                wire:model.defer="currency"
+                                type="text"
+                                :label="__('Currency')"
+                                icon="o-banknotes"
+                                maxlength="3" />
+
+                            <x-select
+                                wire:model.defer="status"
+                                :label="__('Status')"
+                                :options="[
+                                    ['id' => 'pending', 'name' => __('Pending')],
+                                    ['id' => 'paid', 'name' => __('Paid')],
+                                    ['id' => 'failed', 'name' => __('Failed')],
+                                    ['id' => 'cancelled', 'name' => __('Cancelled')]
+                                ]"
+                                icon="o-funnel" />
                         </div>
                     </div>
 
@@ -302,34 +369,37 @@
                         rows="4"
                         :placeholder="__('Add internal notes about this donation')" />
 
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Payment') }}</p>
-                            <p class="mt-1 font-semibold text-gray-900 dark:text-white">
-                                {{ $detailAttempt?->gateway ? strtoupper($detailAttempt->gateway) : __('N/A') }}
-                            </p>
-                            <p class="text-xs opacity-60">{{ $detailAttempt?->provider_reference ?? '-' }}</p>
+                    @if($donation)
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div class="p-4 border rounded-lg dark:border-gray-700">
+                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Payment') }}</p>
+                                <p class="mt-1 font-semibold text-gray-900 dark:text-white">
+                                    {{ $detailAttempt?->gateway ? strtoupper($detailAttempt->gateway) : __('N/A') }}
+                                </p>
+                                <p class="text-xs opacity-60">{{ $detailAttempt?->provider_reference ?? '-' }}</p>
+                            </div>
+                            <div class="p-4 border rounded-lg dark:border-gray-700">
+                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Dates') }}</p>
+                                <p class="mt-1 text-sm">{{ __('Created') }}: {{ $donation?->created_at?->format('M d, Y H:i') ?? '-' }}</p>
+                                <p class="text-xs opacity-60">{{ __('Paid') }}: {{ $donation?->paid_at?->format('M d, Y H:i') ?? '-' }}</p>
+                            </div>
                         </div>
-                        <div class="p-4 border rounded-lg dark:border-gray-700">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('Dates') }}</p>
-                            <p class="mt-1 text-sm">{{ __('Created') }}: {{ $donation?->created_at?->format('M d, Y H:i') ?? '-' }}</p>
-                            <p class="text-xs opacity-60">{{ __('Paid') }}: {{ $donation?->paid_at?->format('M d, Y H:i') ?? '-' }}</p>
-                        </div>
-                    </div>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-3 p-6 border-t dark:border-gray-700">
                     <x-button
                         wire:loading.remove
-                        wire:target="editData"
+                        wire:target="editData,saveData"
                         type="submit"
                         class="btn-primary"
                         icon="o-check">
-                        {{ __('Update Donation') }}
+                        <span x-show="!editMode">{{ __('Create Donation') }}</span>
+                        <span x-show="editMode">{{ __('Update Donation') }}</span>
                     </x-button>
                     <x-button
                         wire:loading
-                        wire:target="editData"
+                        wire:target="editData,saveData"
                         type="button"
                         disabled
                         class="btn-primary">
@@ -417,6 +487,7 @@
 <script>
     Alpine.data('donations', () => ({
         isOpen: false,
+        editMode: false,
         selectPage: false,
         rows: [],
         filtersOpen: false,
@@ -430,6 +501,24 @@
         init() {
             $wire.on('dataUpdated', (e) => {
                 this.isOpen = false;
+                this.editMode = false;
+
+                $nextTick(() => {
+                    const element = document.getElementById(e.dataId);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.classList.add('animate-pulse');
+
+                        setTimeout(() => {
+                            element.classList.remove('animate-pulse');
+                        }, 5000);
+                    }
+                });
+            });
+
+            $wire.on('dataAdded', (e) => {
+                this.isOpen = false;
+                this.editMode = false;
 
                 $nextTick(() => {
                     const element = document.getElementById(e.dataId);
@@ -445,14 +534,24 @@
             });
         },
 
+        toggleModal() {
+            this.isOpen = !this.isOpen;
+            if (!this.isOpen) {
+                this.editMode = false;
+                $wire.resetData();
+            }
+        },
+
         closeModal() {
             this.isOpen = false;
+            this.editMode = false;
             $wire.resetData();
         },
 
         editModal(id) {
             $wire.loadData(id);
             this.isOpen = true;
+            this.editMode = true;
         },
 
         confirmDelete(id, title = 'Delete Donation') {

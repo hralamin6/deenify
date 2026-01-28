@@ -55,6 +55,9 @@
             @can('donations.view')
             <x-menu-item :title="__('Donations')" icon="o-banknotes" :link="route('app.donations')" route="app.donations"/>
             @endcan
+            @can('recurring-plans.view')
+            <x-menu-item :title="__('Recurring Plans')" icon="o-arrow-path" :link="route('app.recurring-plans')" route="app.recurring-plans"/>
+            @endcan
             @can('payment-attempts.view')
             <x-menu-item :title="__('Payment Attempts')" icon="o-check-circle" :link="route('app.payment-attempts')" route="app.payment-attempts"/>
             @endcan

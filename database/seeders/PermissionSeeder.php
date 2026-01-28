@@ -51,7 +51,10 @@ class PermissionSeeder extends Seeder
                 'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
             ],
             'donations' => [
-                'donations.view', 'donations.edit', 'donations.delete',
+                'donations.view', 'donations.create', 'donations.edit', 'donations.delete',
+            ],
+            'recurring-plans' => [
+                'recurring-plans.view', 'recurring-plans.create', 'recurring-plans.edit', 'recurring-plans.delete',
             ],
             'payment-attempts' => [
                 'payment-attempts.view', 'payment-attempts.edit', 'payment-attempts.delete',
@@ -90,7 +93,8 @@ class PermissionSeeder extends Seeder
             'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.delete',
             'expense-categories.view', 'expense-categories.create', 'expense-categories.edit', 'expense-categories.delete',
             'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
-            'donations.view', 'donations.edit', 'donations.delete',
+            'donations.view', 'donations.create', 'donations.edit', 'donations.delete',
+            'recurring-plans.view', 'recurring-plans.create', 'recurring-plans.edit', 'recurring-plans.delete',
             'payment-attempts.view', 'payment-attempts.edit', 'payment-attempts.delete',
         ])->get();
         $admin->syncPermissions($adminPerms);
@@ -100,7 +104,8 @@ class PermissionSeeder extends Seeder
             'campaigns.view',
             'expense-categories.view',
             'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
-            'donations.view', 'donations.edit',
+            'donations.view', 'donations.create', 'donations.edit',
+            'recurring-plans.view', 'recurring-plans.create', 'recurring-plans.edit',
             'pages.view',
             'profile.update',
         ])->get();

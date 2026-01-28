@@ -2,14 +2,14 @@
 
 use App\Models\Campaign;
 use App\Models\Donation;
-use App\Models\ManualPaymentProof;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Livewire\Attributes\Computed;
 use Mary\Traits\Toast;
 use misterspelik\LaravelPdf\Facades\Pdf;
 
@@ -18,27 +18,35 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
     use Toast, WithFileUploads;
 
     public Campaign $campaign;
+
     public $amount;
+
     public $donor_name;
+
     public $donor_email;
+
     public $donor_password;
+
     public bool $showDonateModal = false;
+
     public $donations = [];
+
+    public $expenses = [];
+
     public $gateway = 'shurjopay'; // Default gateway
-    
+
     // Manual payment fields
     public $transaction_id;
+
     public $currentPaymentAttempt;
-
-
 
     public function showToast(): void
     {
-        if(session()->has('toast_success')) {
+        if (session()->has('toast_success')) {
             $this->success(session('toast_success'));
             session()->forget('toast_success');
         }
-        if(session()->has('toast_error')) {
+        if (session()->has('toast_error')) {
             $this->error(session('toast_error'));
             session()->forget('toast_error');
         }
@@ -55,19 +63,25 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
 
     public function mount(string $slug): void
     {
-        
+
         $this->campaign = Campaign::query()
             ->withSum(['donations as paid_donations_sum' => fn ($q) => $q->where('status', 'paid')], 'amount')
             ->withCount(['donations as paid_donations_count' => fn ($q) => $q->where('status', 'paid')])
             ->withSum('expenses', 'amount')
             ->where('slug', $slug)
             ->firstOrFail();
-
+//dd($this->campaign);
         $this->donations = Donation::query()
             ->where('campaign_id', $this->campaign->id)
             ->where('status', 'paid')
             ->orderByDesc('paid_at')
             ->limit(8)
+            ->get();
+
+        $this->expenses = Expense::query()
+            ->with('category')
+            ->where('campaign_id', $this->campaign->id)
+            ->orderByDesc('spent_at')
             ->get();
 
         if (auth()->check()) {
@@ -90,7 +104,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         }
 
         // If user is not logged in, require name, email, and password
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             $rules['donor_name'] = 'required|string|max:255';
             $rules['donor_email'] = 'required|email|max:255';
             $rules['donor_password'] = 'required|string|min:8';
@@ -105,13 +119,14 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         $isNewLogin = false;
 
         // Handle guest user data and authentication preparation
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             $user = User::where('email', $this->donor_email)->first();
 
             if ($user) {
                 // User exists - verify password
-                if (!Hash::check($this->donor_password, $user->password)) {
+                if (! Hash::check($this->donor_password, $user->password)) {
                     $this->addError('donor_password', __('The password is incorrect.'));
+
                     return;
                 }
             } else {
@@ -123,7 +138,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
                 ]);
                 $user->assignRole('user');
             }
-            
+
             $userId = $user->id;
             $donorName = $user->name;
             $donorEmail = $user->email;
@@ -165,11 +180,11 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             // Now login the user if they were a guest
             if ($isNewLogin) {
                 auth()->loginUsingId($userId);
-                
+
                 // Store success message in session for after redirect
                 // Using 'toast_success' to survive session regeneration
                 session()->put('toast_success', __('Payment proof submitted! We will verify and confirm your donation soon.'));
-               
+
                 return redirect()->route('web.campaign', $this->campaign->slug);
             }
             $this->userDonations();
@@ -178,6 +193,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             $this->showDonateModal = false;
             $this->reset(['transaction_id', 'amount', 'gateway']);
             $this->success(__('Payment proof submitted! We will verify and confirm your donation soon.'));
+
             return;
         }
 
@@ -185,7 +201,6 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         if ($isNewLogin) {
             auth()->loginUsingId($userId);
         }
-
 
         // Handle automated payment gateways
         if ($this->gateway === 'shurjopay') {
@@ -221,7 +236,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         $shurjopay = app(\Raziul\Shurjopay\Gateway::class);
         $shurjopay->setCallbackUrl(route('payment.shurjopay.callback'), route('payment.shurjopay.cancel'));
 
-        $orderId = 'SP' . time() . 'ID' . $paymentAttempt->id;
+        $orderId = 'SP'.time().'ID'.$paymentAttempt->id;
 
         $payload = [
             'amount' => $this->amount,
@@ -240,13 +255,13 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         try {
             return $shurjopay->makePayment($payload);
         } catch (\Exception $e) {
-            $this->addError('amount', __('Error: ') . $e->getMessage());
+            $this->addError('amount', __('Error: ').$e->getMessage());
         }
     }
 
     protected function processAamarPay(\App\Models\PaymentAttempt $paymentAttempt)
     {
-        $orderId = 'AP' . time() . 'ID' . $paymentAttempt->id;
+        $orderId = 'AP'.time().'ID'.$paymentAttempt->id;
 
         $config = [
             'store_id' => config('aamarpay.store_id'),
@@ -276,10 +291,10 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
                 'cus_city' => 'Dhaka',
                 'cus_country' => 'Bangladesh',
             ])
-            ->transactionId($orderId)
-            ->amount($this->amount)
-            ->currency('BDT')
-            ->product('Donation for ' . $this->campaign->title);
+                ->transactionId($orderId)
+                ->amount($this->amount)
+                ->currency('BDT')
+                ->product('Donation for '.$this->campaign->title);
 
             // Store payment data in session for the redirect view
             session()->put('aamarpay_payment', [
@@ -290,7 +305,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             // Redirect to a dedicated payment redirect route
             return redirect()->route('payment.aamarpay.redirect');
         } catch (\Exception $e) {
-            $this->addError('amount', __('Error: ') . $e->getMessage());
+            $this->addError('amount', __('Error: ').$e->getMessage());
         }
     }
 
@@ -308,8 +323,8 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             ->firstOrFail();
 
         $attempt = $donation->paymentAttempts->first();
-        $invoiceNumber = 'INV-' . $donation->id . '-' . $donation->created_at?->format('Ymd');
-        $filename = 'invoice_' . $donation->id . '.pdf';
+        $invoiceNumber = 'INV-'.$donation->id.'-'.$donation->created_at?->format('Ymd');
+        $filename = 'invoice_'.$donation->id.'.pdf';
 
         $data = [
             'donation' => $donation,
@@ -335,7 +350,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
     #[Computed]
     public function userDonations()
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return collect();
         }
 

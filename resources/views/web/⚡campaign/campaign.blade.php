@@ -6,21 +6,19 @@
         $words = str_word_count(strip_tags($campaign->description ?? ''));
         $shareUrl = urlencode(request()->fullUrl());
         $shareText = urlencode($campaign->title);
+        $raised = (float) ($campaign->paid_donations_sum ?? 0);
+        $expense = (float) ($campaign->expenses_sum_amount ?? 0);
+        $goal = (float) ($campaign->goal_amount ?? 0);
+        $progress = $goal > 0 ? min(100, round(($raised / $goal) * 100)) : 0;
+        $balance = $raised - $expense;
 
     @endphp
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950" x-data="{open:false}"
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950" x-data="{open:false, progress: {{ $progress }}}"
         x-init="
             $nextTick(() => {
                 $wire.showToast()
             })
         ">
-    @php
-        $raised = (float) ($campaign->paid_donations_sum ?? 0);
-        $expense = (float) ($campaign->expenses_sum ?? 0);
-        $goal = (float) ($campaign->goal_amount ?? 0);
-        $progress = $goal > 0 ? min(100, round(($raised / $goal) * 100)) : 0;
-        $balance = $raised - $expense;
-    @endphp
 
     {{-- Hero Section --}}
     <section class="relative overflow-hidden bg-white dark:bg-gray-900 py-8">
@@ -82,7 +80,7 @@
                                 </div>
                                 <div class="h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                                     <div class="h-full rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"
-                                         style="width: {{ $progress }}%"></div>
+                                         x-bind:style="{ width: progress + '%' }"></div>
                                 </div>
                                 <div class="flex justify-between text-sm mt-3 text-gray-600 dark:text-gray-400">
                                     <span>{{ __('Goal') }}: ৳{{ number_format($goal, 0) }}</span>
@@ -113,20 +111,45 @@
 
                     {{-- Recent Donors --}}
                     <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 sm:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('Recent Supporters') }}</h3>
-                        <div class="grid gap-3 sm:grid-cols-2">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('Recent Supporters') }}</h3>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                {{ number_format($campaign->paid_donations_count ?? 0) }} {{ __('Supporters') }}
+                            </span>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
                             @forelse($donations as $donation)
-                                <div class="flex items-center justify-between rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 px-4 py-3 border border-indigo-100 dark:border-indigo-800">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold">
-                                            {{ substr($donation->donor_name, 0, 1) }}
+                                <div class="rounded-2xl border border-indigo-100 dark:border-indigo-800 bg-gradient-to-r from-indigo-50/80 via-sky-50/60 to-purple-50/80 dark:from-indigo-900/20 dark:via-sky-900/10 dark:to-purple-900/20 p-4 sm:p-5 shadow-sm transition-all hover:shadow-md">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold">
+                                                {{ substr($donation->donor_name, 0, 1) }}
+                                            </div>
+                                            <div>
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <p class="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{{ $donation->donor_name }}</p>
+                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-tighter
+                                                        {{ $donation->status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' }}">
+                                                        {{ $donation->status }}
+                                                    </span>
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ __('Paid') }}: {{ $donation->paid_at?->format('M d, Y · h:i A') ?? '-' }}
+                                                </p>
+                                                <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                                                    {{ __('Reference') }}: #{{ $donation->id }}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $donation->donor_name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $donation->paid_at?->diffForHumans() }}</p>
+                                        <div class="text-right">
+                                            <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">৳{{ number_format($donation->amount, 0) }}</p>
+                                            @if($donation->gateway)
+                                                <p class="mt-1 text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                    {{ $donation->gateway }}
+                                                </p>
+                                            @endif
                                         </div>
                                     </div>
-                                    <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400">৳{{ number_format($donation->amount, 0) }}</p>
                                 </div>
                             @empty
                                 <div class="sm:col-span-2 text-center py-8">
@@ -136,12 +159,83 @@
                             @endforelse
                         </div>
                     </div>
+
+                    {{-- Campaign Expenses --}}
+                    <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 sm:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('Campaign Expenses') }}</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ __('Total') }}</span>
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
+                                    ৳{{ number_format($expense, 0) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="grid gap-4">
+                            @forelse($expenses as $expenseItem)
+                                @php
+                                    $receiptUrl = getImage($expenseItem, 'receipt', null, null);
+                                    $hasReceipt = $receiptUrl && !str_contains($receiptUrl, 'placehold.co');
+                                @endphp
+                                <div class="group rounded-2xl border border-gray-100 dark:border-gray-700 bg-gradient-to-r from-rose-50/70 via-amber-50/50 to-orange-50/70 dark:from-rose-900/10 dark:via-amber-900/10 dark:to-orange-900/10 p-4 sm:p-5 shadow-sm transition-all hover:shadow-md">
+                                    <div class="flex flex-wrap items-start justify-between gap-4">
+                                        <div class="flex items-start gap-4">
+                                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70 dark:bg-gray-900/40 border border-white/60 dark:border-gray-700">
+                                                <x-icon name="o-receipt-refund" class="h-6 w-6 text-rose-600 dark:text-rose-400" />
+                                            </div>
+                                            <div>
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <p class="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+                                                        {{ $expenseItem->category?->name ?? __('Uncategorized') }}
+                                                    </p>
+                                                    <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-white/70 dark:bg-gray-900/40 text-gray-600 dark:text-gray-300 border border-white/60 dark:border-gray-700">
+                                                        {{ $expenseItem->spent_at?->format('M d, Y') ?? __('Date not set') }}
+                                                    </span>
+                                                </div>
+                                                @if($expenseItem->description)
+                                                    <p class="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                                                        {{ $expenseItem->description }}
+                                                    </p>
+                                                @endif
+                                                <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                                    {{ __('Recorded') }}: {{ $expenseItem->created_at?->diffForHumans() ?? '-' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-lg font-bold text-rose-600 dark:text-rose-400">৳{{ number_format($expenseItem->amount, 0) }}</p>
+                                            @if($hasReceipt)
+                                                <div class="mt-2 flex flex-col items-end gap-1">
+                                                    <a href="{{ $receiptUrl }}" target="_blank" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                        {{ __('View Receipt') }}
+                                                    </a>
+                                                    <a href="{{ $receiptUrl }}" download class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+                                                        {{ __('Download Receipt') }}
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+                                                    <x-icon name="o-minus-circle" class="h-4 w-4" />
+                                                    {{ __('No receipt uploaded') }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-10">
+                                    <x-icon name="o-receipt-percent" class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('No expenses reported yet.') }}</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Right Column - Sidebar --}}
                 <div class="space-y-6">
                     {{-- Donate Card --}}
-                    <div id="donate" class="sticky top-20 rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                    <div id="donate" class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
                         <div class="text-center mb-6">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center mx-auto mb-4">
                                 <x-icon name="o-heart" class="w-8 h-8 text-white" />
@@ -160,7 +254,7 @@
                                 {{ __('Share Campaign') }}
                             </button>
                         </div>
-                            
+
 
                         <div class="relative">
                             <div x-cloak x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 translate-y-2" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-2" @click.outside="open=false" class="absolute right-0 bottom-full mb-4 w-72 p-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-2xl z-50">
@@ -321,11 +415,11 @@
         <div class="space-y-4">
             <div class="grid gap-3">
                 <x-input wire:model="amount" :label="__('Amount (BDT)')" type="number" icon="o-currency-bangladeshi" hint="{{ __('Minimum ৳10') }}" />
-                
+
                 @guest
                     <x-input wire:model="donor_name" :label="__('Your Name')" icon="o-user" />
                     <x-input wire:model="donor_email" :label="__('Email')" type="email" icon="o-envelope" />
-                    <x-input wire:model="donor_password" :label="__('Password')" type="password" icon="o-lock-closed" 
+                    <x-input wire:model="donor_password" :label="__('Password')" type="password" icon="o-lock-closed"
                         hint="{{ __('Login or create account (min 8 chars)') }}" />
                 @endguest
             </div>
@@ -335,9 +429,9 @@
                 {{-- Automated Gateways Section --}}
                 <div class="space-y-2">
                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">{{ __('Automated Payment') }}</div>
-                    
+
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all" 
+                        <label class="flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
                             :class="currentGateway === 'shurjopay' ? 'border-primary bg-primary/5' : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'">
                             <input type="radio" x-model="currentGateway" value="shurjopay" class="radio radio-primary radio-sm hidden">
                             <div class="flex-1">
@@ -360,7 +454,7 @@
                 {{-- Manual Payment Section --}}
                 <div class="space-y-2">
                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-4 px-1">{{ __('Manual Payment (Send Money)') }}</div>
-                    
+
                     <div class="grid grid-cols-3 gap-2">
                         {{-- bKash --}}
                         <label class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
@@ -394,7 +488,7 @@
                     </div>
 
                     {{-- Transaction ID Input (shown for all manual methods) --}}
-                    <div x-show="['bkash', 'nagad', 'rocket'].includes(currentGateway)" x-transition 
+                    <div x-show="['bkash', 'nagad', 'rocket'].includes(currentGateway)" x-transition
                         class="p-4 rounded-xl border space-y-3"
                         :class="{
                             'bg-pink-50 dark:bg-pink-900/10 border-pink-100 dark:border-pink-800': currentGateway === 'bkash',
@@ -408,7 +502,7 @@
                                 'text-purple-700 dark:text-purple-300': currentGateway === 'rocket'
                             }">
                             <p><strong>1.</strong> <span x-text="currentGateway === 'bkash' ? 'Open bKash app' : currentGateway === 'nagad' ? 'Open Nagad app' : 'Open Rocket app'"></span> and select <span class="font-bold">Send Money</span></p>
-                            <p><strong>2.</strong> Send <span class="font-bold">৳{{ number_format($amount ?: 0, 2) }}</span> to 
+                            <p><strong>2.</strong> Send <span class="font-bold">৳{{ number_format($amount ?: 0, 2) }}</span> to
                                 <span class="font-mono font-bold bg-white dark:bg-gray-800 px-2 rounded border select-all"
                                     :class="{
                                         'border-pink-200': currentGateway === 'bkash',
@@ -428,9 +522,9 @@
 
         <x-slot:actions>
             <x-button :label="__('Cancel')" @click="$wire.showDonateModal = false" />
-            
+
             <x-button :label="__('Submit Donation')" icon="o-heart" wire:click="donate" class="btn-primary" spinner="donate" />
         </x-slot:actions>
     </x-modal>
-    
+
 </div>

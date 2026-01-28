@@ -3,7 +3,9 @@
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Expense;
+use App\Models\RecurringPlan;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -34,6 +36,18 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
     public $expenses = [];
 
     public $gateway = 'shurjopay'; // Default gateway
+
+    public $recurring_amount = 1000;
+
+    public $recurring_interval = 'monthly';
+
+    public $recurring_day_of_week = 1;
+
+    public $recurring_day_of_month = 1;
+
+    public $recurringPaymentPlanId = null;
+
+    public $pendingDonationId = null;
 
     // Manual payment fields
     public $transaction_id;
@@ -70,7 +84,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             ->withSum('expenses', 'amount')
             ->where('slug', $slug)
             ->firstOrFail();
-//dd($this->campaign);
+        // dd($this->campaign);
         $this->donations = Donation::query()
             ->where('campaign_id', $this->campaign->id)
             ->where('status', 'paid')
@@ -145,16 +159,35 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             $isNewLogin = true;
         }
 
-        // At this point, we have a $userId (either auth or just found/created)
-        $donation = Donation::create([
-            'campaign_id' => $this->campaign->id,
-            'user_id' => $userId,
-            'donor_name' => $donorName,
-            'donor_email' => $donorEmail,
-            'amount' => $this->amount,
-            'currency' => 'BDT',
-            'status' => 'pending',
-        ]);
+        if ($this->pendingDonationId) {
+            if (! auth()->check()) {
+                $this->error(__('Please log in to make a payment.'));
+
+                return;
+            }
+
+            $donation = Donation::query()
+                ->where('id', $this->pendingDonationId)
+                ->where('campaign_id', $this->campaign->id)
+                ->where('user_id', $userId)
+                ->where('status', 'pending')
+                ->firstOrFail();
+
+            $this->amount = (float) $donation->amount;
+            $this->recurringPaymentPlanId = $donation->recurring_plan_id;
+        } else {
+            // At this point, we have a $userId (either auth or just found/created)
+            $donation = Donation::create([
+                'campaign_id' => $this->campaign->id,
+                'user_id' => $userId,
+                'recurring_plan_id' => $this->recurringPaymentPlanId,
+                'donor_name' => $donorName,
+                'donor_email' => $donorEmail,
+                'amount' => $this->amount,
+                'currency' => 'BDT',
+                'status' => 'pending',
+            ]);
+        }
 
         // Create payment attempt
         $paymentAttempt = \App\Models\PaymentAttempt::create([
@@ -167,6 +200,9 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
             'session_id' => session()->getId(),
             'initiated_at' => now(),
         ]);
+
+        $this->recurringPaymentPlanId = null;
+        $this->pendingDonationId = null;
 
         // Check if manual payment gateway
         if (in_array($this->gateway, ['bkash', 'nagad', 'rocket'])) {
@@ -208,6 +244,177 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         } else {
             return $this->processAamarPay($paymentAttempt);
         }
+    }
+
+    public function createRecurringPlan(): void
+    {
+        if (! auth()->check()) {
+            $this->error(__('Please log in to start a recurring plan.'));
+
+            return;
+        }
+
+        $data = $this->validate([
+            'recurring_amount' => 'required|numeric|min:10',
+            'recurring_interval' => 'required|in:weekly,monthly',
+            'recurring_day_of_week' => 'nullable|integer|min:0|max:6|required_if:recurring_interval,weekly',
+            'recurring_day_of_month' => 'nullable|integer|min:1|max:31|required_if:recurring_interval,monthly',
+        ]);
+
+        $now = now();
+        $nextRun = $now->copy();
+
+        if ($data['recurring_interval'] === 'weekly') {
+            $days = [
+                Carbon::SUNDAY,
+                Carbon::MONDAY,
+                Carbon::TUESDAY,
+                Carbon::WEDNESDAY,
+                Carbon::THURSDAY,
+                Carbon::FRIDAY,
+                Carbon::SATURDAY,
+            ];
+            $targetDay = $days[$data['recurring_day_of_week']] ?? Carbon::MONDAY;
+            $nextRun = $now->copy()->next($targetDay);
+            $data['recurring_day_of_month'] = null;
+        }
+
+        if ($data['recurring_interval'] === 'monthly') {
+            $day = (int) ($data['recurring_day_of_month'] ?? 1);
+            $initialDay = min($day, $now->daysInMonth);
+            $candidate = $now->copy()->day($initialDay);
+
+            if ($candidate->isSameDay($now) || $candidate->isPast()) {
+                $nextMonth = $now->copy()->addMonth();
+                $candidateDay = min($day, $nextMonth->daysInMonth);
+                $candidate = $nextMonth->day($candidateDay);
+            }
+
+            $nextRun = $candidate;
+            $data['recurring_day_of_week'] = null;
+        }
+
+        RecurringPlan::create([
+            'user_id' => auth()->id(),
+            'campaign_id' => $this->campaign->id,
+            'amount' => $data['recurring_amount'],
+            'currency' => 'BDT',
+            'interval' => $data['recurring_interval'],
+            'day_of_week' => $data['recurring_day_of_week'],
+            'day_of_month' => $data['recurring_day_of_month'],
+            'status' => 'active',
+            'starts_at' => $now,
+            'next_run_at' => $nextRun,
+        ]);
+
+        $this->reset(['recurring_amount', 'recurring_interval', 'recurring_day_of_week', 'recurring_day_of_month']);
+        $this->recurring_interval = 'monthly';
+        $this->recurring_day_of_week = 1;
+        $this->recurring_day_of_month = 1;
+        $this->recurring_amount = 1000;
+
+        $this->success(__('Recurring plan started successfully.'));
+    }
+
+    public function payPendingRecurringDonation(int $donationId): void
+    {
+        if (! auth()->check()) {
+            $this->error(__('Please log in to make a payment.'));
+
+            return;
+        }
+
+        $donation = Donation::query()
+            ->where('id', $donationId)
+            ->where('campaign_id', $this->campaign->id)
+            ->where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $this->amount = (float) $donation->amount;
+        $this->recurringPaymentPlanId = $donation->recurring_plan_id;
+        $this->pendingDonationId = $donation->id;
+        $this->gateway = 'shurjopay';
+        $this->showDonateModal = true;
+    }
+
+    #[Computed]
+    public function userRecurringPlan()
+    {
+        if (! auth()->check()) {
+            return null;
+        }
+
+        return RecurringPlan::query()
+            ->where('campaign_id', $this->campaign->id)
+            ->where('user_id', auth()->id())
+            ->whereIn('status', ['active', 'paused'])
+            ->latest()
+            ->first();
+    }
+
+    #[Computed]
+    public function recurringPlanDonations()
+    {
+        $plan = $this->userRecurringPlan;
+
+        if (! $plan) {
+            return collect();
+        }
+
+        return Donation::query()
+            ->where('recurring_plan_id', $plan->id)
+            ->where('campaign_id', $this->campaign->id)
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+    }
+
+    #[Computed]
+    public function pendingRecurringDonation()
+    {
+        $plan = $this->userRecurringPlan;
+
+        if (! $plan || ! auth()->check()) {
+            return null;
+        }
+
+        return Donation::query()
+            ->where('recurring_plan_id', $plan->id)
+            ->where('campaign_id', $this->campaign->id)
+            ->where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->latest('created_at')
+            ->first();
+    }
+
+    #[Computed]
+    public function upcomingRecurringDates()
+    {
+        $plan = $this->userRecurringPlan;
+
+        if (! $plan || ! $plan->next_run_at) {
+            return collect();
+        }
+
+        $dates = collect();
+        $current = $plan->next_run_at->copy();
+
+        for ($i = 0; $i < 3; $i++) {
+            $dates->push($current->copy());
+
+            if ($plan->interval === 'weekly') {
+                $current = $current->copy()->addWeek();
+
+                continue;
+            }
+
+            $day = (int) ($plan->day_of_month ?? 1);
+            $next = $current->copy()->addMonth();
+            $current = $next->day(min($day, $next->daysInMonth));
+        }
+
+        return $dates;
     }
 
     public function submitManualPaymentProof()

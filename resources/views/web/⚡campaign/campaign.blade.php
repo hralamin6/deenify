@@ -367,6 +367,190 @@
                         </div>
                     </div>
 
+                    {{-- Recurring Support Card --}}
+                    <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                                <x-icon name="o-arrow-path" class="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('Start Monthly/Weekly Support') }}</h3>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ __('Keep this campaign funded on schedule.') }}</p>
+                            </div>
+                        </div>
+
+                        @auth
+                            @php
+                                $plan = $this->userRecurringPlan;
+                                $statusClass = $plan ? match ($plan->status) {
+                                    'active' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                                    'paused' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+                                    default => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                } : null;
+                            @endphp
+
+                            @if($plan)
+                                <div class="space-y-4">
+                                    <div class="rounded-2xl border border-emerald-100 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/10 p-4">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p class="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{{ __('Subscription') }}</p>
+                                                <p class="mt-1 text-lg font-bold text-gray-900 dark:text-white">৳{{ number_format($plan->amount, 0) }} <span class="text-sm text-gray-500 dark:text-gray-400">/ {{ ucfirst($plan->interval) }}</span></p>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ __('Started') }}: {{ $plan->starts_at?->format('M d, Y') ?? '-' }}
+                                                </p>
+                                            </div>
+                                            <span class="px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide {{ $statusClass }}">
+                                                {{ $plan->status }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-white/70 dark:bg-gray-900/40 px-2 py-1 border border-white/60 dark:border-gray-700">
+                                                <x-icon name="o-calendar" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                                {{ $plan->interval === 'weekly' ? __('Weekly') : __('Monthly') }}
+                                            </span>
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-white/70 dark:bg-gray-900/40 px-2 py-1 border border-white/60 dark:border-gray-700">
+                                                <x-icon name="o-clock" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                                {{ $plan->next_run_at?->format('M d, Y') ?? __('Next run TBD') }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3">{{ __('Upcoming Donations') }}</h4>
+                                        @php
+                                            $pendingDonation = $this->pendingRecurringDonation;
+                                            $nextDate = $this->upcomingRecurringDates->first();
+                                        @endphp
+                                        <div class="space-y-2">
+                                            @if($pendingDonation)
+                                                <div class="flex items-center justify-between rounded-xl bg-amber-50 dark:bg-amber-900/10 px-3 py-2 border border-amber-100 dark:border-amber-800">
+                                                    <span class="text-xs text-amber-700 dark:text-amber-300">{{ __('Pending since') }} {{ $pendingDonation->created_at?->format('M d, Y') }}</span>
+                                                    <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">৳{{ number_format($pendingDonation->amount, 0) }}</span>
+                                                </div>
+                                                <button type="button"
+                                                        wire:click="payPendingRecurringDonation({{ $pendingDonation->id }})"
+                                                        class="w-full btn btn-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0">
+                                                    <x-icon name="o-credit-card" class="w-4 h-4" />
+                                                    {{ __('Pay Pending Donation') }}
+                                                </button>
+                                            @elseif($nextDate)
+                                                <div class="flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-900/30 px-3 py-2">
+                                                    <span class="text-xs text-gray-600 dark:text-gray-400">{{ $nextDate->format('M d, Y') }}</span>
+                                                    <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">৳{{ number_format($plan->amount, 0) }}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('A pending donation will be created on the due date.') }}</p>
+                                            @else
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Upcoming dates will appear after the next run is scheduled.') }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3">{{ __('Plan Donations') }}</h4>
+                                        <div class="space-y-2">
+                                            @forelse($this->recurringPlanDonations as $donation)
+                                                @php
+                                                    $donationStatusClass = match ($donation->status) {
+                                                        'paid' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                                                        'pending' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+                                                        'failed' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+                                                        'cancelled' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                                        default => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                                    };
+                                                @endphp
+                                                <div class="flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-900/30 px-3 py-2">
+                                                    <div>
+                                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $donation->created_at?->format('M d, Y') }}</p>
+                                                        <p class="text-xs font-semibold text-gray-800 dark:text-gray-200">৳{{ number_format($donation->amount, 0) }}</p>
+                                                    </div>
+                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wide {{ $donationStatusClass }}">
+                                                        {{ $donation->status }}
+                                                    </span>
+                                                </div>
+                                            @empty
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('No recurring donations yet.') }}</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <form wire:submit.prevent="createRecurringPlan" class="space-y-4">
+                                    <div class="grid gap-3">
+                                        <x-input
+                                            wire:model="recurring_amount"
+                                            :label="__('Amount (BDT)')"
+                                            type="number"
+                                            icon="o-currency-bangladeshi"
+                                            hint="{{ __('Minimum ৳10') }}" />
+                                    </div>
+
+                                    <div x-data="{ interval: @entangle('recurring_interval').live }" class="grid gap-3">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <label class="flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                                                :class="interval === 'monthly' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300'">
+                                                <input type="radio" x-model="interval" value="monthly" class="radio radio-success radio-sm hidden">
+                                                <div>
+                                                    <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Monthly') }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Same day each month') }}</p>
+                                                </div>
+                                            </label>
+                                            <label class="flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                                                :class="interval === 'weekly' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-teal-300'">
+                                                <input type="radio" x-model="interval" value="weekly" class="radio radio-success radio-sm hidden">
+                                                <div>
+                                                    <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Weekly') }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Pick a weekday') }}</p>
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        <div x-show="interval === 'monthly'" x-cloak>
+                                            <x-input
+                                                wire:model="recurring_day_of_month"
+                                                :label="__('Day of Month')"
+                                                type="number"
+                                                min="1"
+                                                max="31"
+                                                icon="o-calendar-days" />
+                                        </div>
+
+                                        <div x-show="interval === 'weekly'" x-cloak>
+                                            <x-select
+                                                wire:model="recurring_day_of_week"
+                                                :label="__('Day of Week')"
+                                                icon="o-calendar"
+                                                :options="[
+                                                    ['id' => 0, 'name' => __('Sunday')],
+                                                    ['id' => 1, 'name' => __('Monday')],
+                                                    ['id' => 2, 'name' => __('Tuesday')],
+                                                    ['id' => 3, 'name' => __('Wednesday')],
+                                                    ['id' => 4, 'name' => __('Thursday')],
+                                                    ['id' => 5, 'name' => __('Friday')],
+                                                    ['id' => 6, 'name' => __('Saturday')]
+                                                ]" />
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="w-full btn bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 shadow-lg">
+                                        <x-icon name="o-arrow-path" class="w-5 h-5" />
+                                        {{ __('Start Recurring Support') }}
+                                    </button>
+                                </form>
+                            @endif
+                        @endauth
+
+                        @guest
+                            <div class="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4 text-center">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Log in to start a recurring plan and track it anytime.') }}</p>
+                                <a href="{{ route('login') }}" class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">
+                                    <x-icon name="o-arrow-right-on-rectangle" class="w-4 h-4" />
+                                    {{ __('Log in to continue') }}
+                                </a>
+                            </div>
+                        @endguest
+                    </div>
+
                     {{-- Campaign Timeline --}}
                     <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ __('Campaign Timeline') }}</h3>
@@ -414,7 +598,17 @@
     <x-modal wire:model="showDonateModal" :title="__('Support') . ' ' . $campaign->title" class="backdrop-blur">
         <div class="space-y-4">
             <div class="grid gap-3">
-                <x-input wire:model="amount" :label="__('Amount (BDT)')" type="number" icon="o-currency-bangladeshi" hint="{{ __('Minimum ৳10') }}" />
+                @php
+                    $isPendingPayment = ! empty($pendingDonationId);
+                @endphp
+                <x-input wire:model="amount" :label="__('Amount (BDT)')" type="number" icon="o-currency-bangladeshi"
+                         hint="{{ $isPendingPayment ? __('Amount is locked for this pending donation.') : __('Minimum ৳10') }}"
+                         @if($isPendingPayment) readonly @endif />
+                @if($isPendingPayment)
+                    <div class="rounded-xl border border-emerald-100 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
+                        {{ __('This payment will settle your pending recurring donation.') }}
+                    </div>
+                @endif
 
                 @guest
                     <x-input wire:model="donor_name" :label="__('Your Name')" icon="o-user" />

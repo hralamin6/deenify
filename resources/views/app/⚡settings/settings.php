@@ -2,7 +2,7 @@
 
 
 use App\Models\Setting as SettingModel;
-use EragLaravelPwa\Core\PWA;
+use EragLaravelPwa\Facades\PWA;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -377,7 +377,9 @@ class extends Component
 
         // Handle icon upload
         if ($this->iconImage) {
-             $icon->clearMediaCollection('icon');
+            // Copy to logo.png BEFORE addMedia processes it (which moves/deletes the temp file)
+            copy($this->iconImage->getRealPath(), public_path('logo.png'));
+            $icon->clearMediaCollection('icon');
             $icon->addMedia($this->iconImage->getRealPath())
                 ->usingFileName('icon.' . $this->iconImage->getClientOriginalExtension())
                 ->toMediaCollection('icon');
@@ -387,7 +389,7 @@ class extends Component
         $this->reset(['logoImage', 'iconImage', 'logoImageUrl', 'iconImageUrl']);
 
         // Update PWA manifest with new branding
-        \EragLaravelPwa\Facades\PWA::update([
+        PWA::update([
             'name' => setting('app.name', 'Laravel PWA'),
             'short_name' => substr(setting('app.name', 'LP'), 0, 12),
             'background_color' => '#6777ef',

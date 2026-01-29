@@ -8,7 +8,7 @@ new #[Layout('layouts::auth')] #[Title('Sign in to your account')] class extends
 {
     public $email = '';
     public $password = '';
-    public $remember = false;
+    public $remember = true;
 
     protected $rules = [
         'email' => ['required', 'email'],

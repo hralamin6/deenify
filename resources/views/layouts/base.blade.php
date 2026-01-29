@@ -25,11 +25,11 @@
       <meta property="og:image:width" content="1536" />
       <meta property="og:image:height" content="1024" />
       <meta name="twitter:card" content="summary" />
-      <link rel="shortcut icon" href="{{ url(asset('logo.png')) }}">
-      {{-- <link rel="shortcut icon" href="@yield('image', getSettingImage('iconImage'))"> --}}
-      <meta property="og:image" content="@yield('image', getSettingImage('iconImage'))" />
-      <meta property="og:image:secure_url" content="@yield('image', getSettingImage('iconImage'))" />
-      <meta name="twitter:image" content="@yield('image', getSettingImage('iconImage'))" />
+      {{-- <link rel="shortcut icon" href="{{ url(asset('logo.png')) }}"> --}}
+      <link rel="shortcut icon" href="@yield('image', getSettingImage('iconImage', 'icon'))">
+      <meta property="og:image" content="@yield('image', getSettingImage('iconImage', 'icon'))" />
+      <meta property="og:image:secure_url" content="@yield('image', getSettingImage('iconImage', 'icon'))" />
+      <meta name="twitter:image" content="@yield('image', getSettingImage('iconImage', 'icon'))" />
 
       {{-- Chart.js for Activity Dashboard --}}
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

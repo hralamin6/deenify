@@ -35,7 +35,6 @@ if (! function_exists('getSettingImage')) {
         if (!$setting) {
             return \setting('placeHolder', $defaultUrl);
         }
-
         // Return the image URL or the default placeholder
         $url = $conversion 
             ? $setting->getFirstMediaUrl($collection, $conversion)

@@ -603,7 +603,7 @@
                 @endphp
                 <x-input wire:model="amount" :label="__('Amount (BDT)')" type="number" icon="o-currency-bangladeshi"
                          hint="{{ $isPendingPayment ? __('Amount is locked for this pending donation.') : __('Minimum ৳10') }}"
-                         @if($isPendingPayment) readonly @endif />
+                         :readonly="$isPendingPayment" />
                 @if($isPendingPayment)
                     <div class="rounded-xl border border-emerald-100 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
                         {{ __('This payment will settle your pending recurring donation.') }}

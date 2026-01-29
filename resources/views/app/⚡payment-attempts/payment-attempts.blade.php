@@ -191,6 +191,16 @@
                             <td class="text-center items-center">
                                 <div class="flex items-center justify-center gap-2">
                                     @can('payment-attempts.edit')
+                                        @if(in_array($item->status, ['initiated', 'pending', 'pending_verification']))
+                                            <x-button
+                                                wire:click="verifyPayment({{ $item->id }})"
+                                                wire:confirm="{{ __('Are you sure you want to verify this payment?') }}"
+                                                icon="o-check-circle"
+                                                class="btn-ghost btn-sm text-success"
+                                                tooltip="{{ __('One Tap Verify') }}" />
+                                        @endif
+                                    @endcan
+                                    @can('payment-attempts.edit')
                                         <x-button
                                             @click="editModal({{ $item->id }})"
                                             icon="o-pencil"

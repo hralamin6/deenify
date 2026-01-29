@@ -65,8 +65,20 @@
                         $isChatNotification = str_contains($type, 'NewMessageNotification');
                     @endphp
                     
-                    <x-card class="hover:shadow-lg transition-all duration-200 {{ $isUnread ? 'bg-primary/5 border-l-4 border-primary' : 'border-l-4 border-transparent' }}">
-                        <div class="flex items-start gap-4">
+                    @php
+                        $hasUrl = isset($data['url']) && !empty($data['url']);
+                    @endphp
+                    
+                    <x-card class="group relative hover:shadow-lg transition-all duration-200 {{ $isUnread ? 'bg-primary/5 border-l-4 border-primary' : 'border-l-4 border-transparent' }} cursor-pointer hover:bg-base-200/50">
+                        {{-- Clickable overlay --}}
+                        <a 
+                            wire:click.prevent="markAsReadAndRedirect('{{ $notification->id }}', '{{ $hasUrl ? $data['url'] : route('app.notifications') }}')" 
+                            href="{{ $hasUrl ? $data['url'] : route('app.notifications') }}" 
+                            class="absolute inset-0 z-10" 
+                            aria-label="{{ __('View notification') }}"
+                        ></a>
+                        
+                        <div class="flex items-start gap-4 relative pointer-events-none">
                             {{-- Avatar/Icon --}}
                             <div class="flex-shrink-0">
                                 @if($isChatNotification && isset($data['sender_avatar']))
@@ -99,7 +111,9 @@
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2">
-                                                <h3 class="font-semibold text-base">{{ $data['sender_name'] ?? __('Unknown User') }}</h3>
+                                                <h3 class="font-semibold text-base {{ $hasUrl ? 'group-hover:text-primary transition-colors' : '' }}">
+                                                    {{ $data['sender_name'] ?? __('Unknown User') }}
+                                                </h3>
                                                 @if($isUnread)
                                                     <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
                                                 @endif
@@ -126,21 +140,18 @@
                                                 @if($isUnread)
                                                     <x-badge :value="__('New')" class="badge-primary badge-xs" />
                                                 @endif
+                                                
+                                                @if($hasUrl)
+                                                    <div class="flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <x-icon name="o-arrow-right" class="w-3.5 h-3.5" />
+                                                        <span>{{ __('Click to view') }}</span>
+                                                    </div>
+                                                @endif
                                             </div>
-                                            
-                                            {{-- Action Button --}}
-                                            @if(isset($data['url']))
-                                                <div class="mt-3">
-                                                    <a href="{{ $data['url'] }}" class="btn btn-primary btn-sm gap-2" wire:navigate>
-                                                        <x-icon name="o-chat-bubble-left-right" class="w-4 h-4" />
-                                                        {{ __('Open Chat') }}
-                                                    </a>
-                                                </div>
-                                            @endif
                                         </div>
                                         
                                         {{-- Actions --}}
-                                        <div class="flex flex-col gap-2">
+                                        <div class="flex flex-col gap-2 {{ $hasUrl ? 'pointer-events-auto' : '' }}">
                                             @if($isUnread)
                                                 <x-button 
                                                     icon="o-check" 
@@ -164,7 +175,14 @@
                                     {{-- Regular Notification --}}
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="flex-1">
-                                            <h3 class="font-semibold text-base">{{ $data['title'] ?? __('Notification') }}</h3>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="font-semibold text-base {{ $hasUrl ? 'group-hover:text-primary transition-colors' : '' }}">
+                                                    {{ $data['title'] ?? __('Notification') }}
+                                                </h3>
+                                                @if($isUnread)
+                                                    <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                                                @endif
+                                            </div>
                                             <p class="text-sm text-base-content/70 mt-1">{{ $data['message'] ?? '' }}</p>
                                             
                                             <div class="flex items-center gap-3 mt-3">
@@ -175,23 +193,21 @@
                                                 @if($isUnread)
                                                     <x-badge :value="__('New')" class="badge-primary badge-xs" />
                                                 @endif
+                                                
+                                                @if($hasUrl)
+                                                    <div class="flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <x-icon name="o-arrow-right" class="w-3.5 h-3.5" />
+                                                        <span>{{ __('Click to view') }}</span>
+                                                    </div>
+                                                @endif
                                             </div>
-                                            
-                                            @if(isset($data['url']))
-                                                <div class="mt-3">
-                                                    <a href="{{ $data['url'] }}" class="btn btn-sm btn-outline gap-2" wire:navigate>
-                                                        {{ __('View Details') }}
-                                                        <x-icon name="o-arrow-right" class="w-4 h-4" />
-                                                    </a>
-                                                </div>
-                                            @endif
                                         </div>
                                         
-                                        <div class="flex flex-col gap-2">
+                                        <div class="flex flex-col gap-2 {{ $hasUrl ? 'pointer-events-auto' : '' }}">
                                             @if($isUnread)
                                                 <x-button 
                                                     icon="o-check" 
-                                                    class="btn-ghost btn-sm btn-circle" 
+                                                    class="btn-ghost btn-sm btn-circle relative z-20" 
                                                     wire:click="markAsRead('{{ $notification->id }}')" 
                                                     :tooltip="__('Mark as read')" 
                                                     spinner 

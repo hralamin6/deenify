@@ -43,6 +43,11 @@ class ActivityNotification extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'title' => 'Activity Alert',
+            'message' => $this->customMessage,
+            'url' => route('app.activity.feed'),
+            'icon' => 'o-bell',
+            'type' => 'info',
             'activity_id' => $this->activity->id,
             'description' => $this->activity->description,
             'log_name' => $this->activity->log_name,

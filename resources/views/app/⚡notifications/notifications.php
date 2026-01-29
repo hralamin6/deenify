@@ -78,8 +78,13 @@ class extends Component
         if ($notification) {
             $notification->markAsRead();
             $this->updateUnreadCount();
-            $this->success('Notification marked as read');
         }
+    }
+
+    public function markAsReadAndRedirect($notificationId, $url): void
+    {
+        $this->markAsRead($notificationId);
+        $this->redirect($url, navigate: true);
     }
 
     public function markAllAsRead(): void

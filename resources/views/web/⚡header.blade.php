@@ -17,9 +17,31 @@ new class extends Component
         if (in_array($locale, ['en', 'ar', 'bn'])) {
             App::setLocale($locale);
             Session::put('locale', $locale);
-            //          $this->redirect(back(), navigate: true);
             $this->redirect(url()->previous(), navigate: true);
         }
+    }
+
+    public function getUnreadMessagesCountProperty()
+    {
+        if (!auth()->check()) return 0;
+        
+        return auth()->user()
+            ->conversations()
+            ->get()
+            ->sum(fn($conversation) => $conversation->getUnreadCount(auth()->id()));
+    }
+
+    public function getUnreadNotificationsCountProperty()
+    {
+        if (!auth()->check()) return 0;
+        return auth()->user()->unreadNotifications()->count();
+    }
+
+    #[On('message-received')]
+    #[On('notification-received')]
+    public function refreshCounts()
+    {
+        $this->dispatch('$refresh');
     }
 };
 ?>
@@ -50,12 +72,34 @@ new class extends Component
                 </a>
             </div>
 
-            {{-- Right Side Actions --}}
-            <div class="flex items-center gap-2">
-                {{-- Theme Toggle --}}
-                <x-theme-toggle class="btn btn-circle btn-ghost btn-sm" x-cloak />
+                {{-- Right Side Actions --}}
+                <div class="flex items-center gap-2">
+                    {{-- Theme Toggle --}}
+                    <x-theme-toggle class="btn btn-circle btn-ghost btn-sm" x-cloak />
 
-                {{-- Language Dropdown --}}
+                    @auth
+                        {{-- Messages Badge --}}
+                        <a wire:navigate href="{{ route('app.chat') }}" class="btn btn-ghost btn-circle btn-sm">
+                            <div class="indicator">
+                                <x-icon name="o-chat-bubble-left-right" class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                                @if($this->unreadMessagesCount > 0)
+                                    <span class="badge badge-xs badge-primary indicator-item">{{ $this->unreadMessagesCount }}</span>
+                                @endif
+                            </div>
+                        </a>
+
+                        {{-- Notifications Badge --}}
+                        <a wire:navigate href="{{ route('app.notifications') }}" class="btn btn-ghost btn-circle btn-sm">
+                            <div class="indicator">
+                                <x-icon name="o-bell" class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                                @if($this->unreadNotificationsCount > 0)
+                                    <span class="badge badge-xs badge-primary indicator-item">{{ $this->unreadNotificationsCount }}</span>
+                                @endif
+                            </div>
+                        </a>
+                    @endauth
+
+                    {{-- Language Dropdown --}}
                 <div class="relative" @click.away="langDropdownOpen = false">
                     <button @click="langDropdownOpen = !langDropdownOpen" class="btn btn-ghost btn-circle btn-sm">
                         <x-icon name="o-language" class="w-5 h-5" />
@@ -152,15 +196,36 @@ new class extends Component
 
             {{-- Mobile Auth Buttons --}}
             @if (Route::has('login'))
-                <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 ">
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                     @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                  @csrf
-                  
-                  <button type="submit" class="block pt-1 w-full btn btn-outline border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white" aria-label="Logout">
-                    {{ __('Logout') }}             
-                     </button>
-                </form>
+                        {{-- Mobile Badges --}}
+                         <div class="grid grid-cols-2 gap-2 mb-2">
+                            <a wire:navigate href="{{ route('app.chat') }}" @click="mobileMenuOpen = false" class="flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition border border-gray-100 dark:border-gray-800">
+                                <div class="indicator">
+                                    <x-icon name="o-chat-bubble-left-right" class="w-5 h-5" />
+                                    @if($this->unreadMessagesCount > 0)
+                                        <span class="badge badge-xs badge-primary indicator-item">{{ $this->unreadMessagesCount }}</span>
+                                    @endif
+                                </div>
+                                <span>{{ __('Messages') }}</span>
+                            </a>
+                            <a wire:navigate href="{{ route('app.notifications') }}" @click="mobileMenuOpen = false" class="flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition border border-gray-100 dark:border-gray-800">
+                                <div class="indicator">
+                                    <x-icon name="o-bell" class="w-5 h-5" />
+                                    @if($this->unreadNotificationsCount > 0)
+                                        <span class="badge badge-xs badge-primary indicator-item">{{ $this->unreadNotificationsCount }}</span>
+                                    @endif
+                                </div>
+                                <span>{{ __('Notifications') }}</span>
+                            </a>
+                        </div>
+
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="block w-full btn btn-outline border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white" aria-label="Logout">
+                                {{ __('Logout') }}             
+                            </button>
+                        </form>
                         <a wire:navigate href="{{ route('app.dashboard') }}" @click="mobileMenuOpen = false" class="block pt-2 w-full btn bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg">
                             {{ __('Dashboard') }}
                         </a>

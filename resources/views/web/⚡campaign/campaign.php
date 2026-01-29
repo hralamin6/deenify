@@ -213,6 +213,19 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
                 'provider_reference' => $this->transaction_id,
             ]);
 
+            // Notify admins
+            try {
+                $admins = User::role('admin')->get();
+                \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\TaskNotification(
+                    title: 'Payment Verification Needed',
+                    message: "A new manual payment of {$this->amount} BDT requires verification.",
+                    url: route('app.payment-attempts', ['search' => $this->transaction_id]),
+                    icon: 'o-currency-dollar',
+                    type: 'info'
+                ));
+            } catch (\Exception $e) {
+                // Ignore notification errors
+            }
             // Now login the user if they were a guest
             if ($isNewLogin) {
                 auth()->loginUsingId($userId);
@@ -417,26 +430,6 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         return $dates;
     }
 
-    public function submitManualPaymentProof()
-    {
-        $this->validate([
-            'transaction_id' => 'required|string|max:255',
-        ]);
-
-        $paymentAttempt = \App\Models\PaymentAttempt::findOrFail($this->currentPaymentAttempt);
-
-        // Update payment attempt with transaction ID
-        $paymentAttempt->update([
-            'status' => 'pending_verification',
-            'provider_reference' => $this->transaction_id,
-        ]);
-
-        // Close modal and reset
-        $this->showDonateModal = false;
-        $this->reset(['transaction_id', 'currentPaymentAttempt', 'amount', 'gateway']);
-        $this->success(__('Payment proof submitted! We will verify and confirm your donation soon.'));
-
-    }
 
     protected function processShurjoPay(\App\Models\PaymentAttempt $paymentAttempt)
     {

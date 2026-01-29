@@ -219,4 +219,36 @@ new #[Title('Payment Attempts')] #[Layout('layouts.app')] class extends Componen
         $this->selectedRows = [];
         $this->success(__('Payment attempts deleted successfully'));
     }
+    public function verifyPayment(PaymentAttempt $paymentAttempt): void
+    {
+        $this->authorize('payment-attempts.edit');
+
+        $now = now();
+
+        $paymentAttempt->update([
+            'status' => 'success',
+            'completed_at' => $now,
+        ]);
+
+        $donation = $paymentAttempt->donation;
+        if ($donation) {
+            $donation->update([
+                'status' => 'paid',
+                'paid_at' => $now,
+            ]);
+
+            // Notify user
+            if ($donation->user) {
+                $donation->user->notify(new \App\Notifications\TaskNotification(
+                    title: __('Payment Verified'),
+                    message: __('Your donation of :amount :currency has been verified successfully.', ['amount' => $donation->amount, 'currency' => $donation->currency]),
+                    url: route('web.campaign', $donation->campaign->slug),
+                    icon: 'o-check-circle',
+                    type: 'success'
+                ));
+            }
+        }
+
+        $this->success(__('Payment verified successfully'));
+    }
 };

@@ -12,6 +12,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 class WebPushNotification extends Notification
 {
     use Queueable;
+    protected ?string $url;
 
     protected $title;
     protected $body;
@@ -25,6 +26,7 @@ class WebPushNotification extends Notification
     public function __construct(
         string $title,
         string $body,
+        ?string $url = 'https://deenify.com',
         ?string $icon = null,
         ?string $badge = null,
         array $data = [],
@@ -34,6 +36,7 @@ class WebPushNotification extends Notification
     ) {
         $this->title = $title;
         $this->body = $body;
+        $this->url = $url;
         $this->icon = $icon ?? asset('logo.png');
         $this->badge = $badge ?? asset('logo.png');
         $this->data = $data;
@@ -91,6 +94,7 @@ class WebPushNotification extends Notification
     {
         return [
             'title' => $this->title,
+            'url' => 'https://deenify.hr/app/expenses',
             'message' => $this->body,
             'action_url' => $this->data['url'] ?? null,
             'action_text' => 'View',

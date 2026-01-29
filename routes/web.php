@@ -7,6 +7,8 @@ require __DIR__.'/auth.php';
 Route::livewire('/', 'web::home')->name('web.home');
 Route::livewire('/campaigns', 'web::campaigns')->name('web.campaigns');
 Route::livewire('/campaigns/{slug}', 'web::campaign')->name('web.campaign');
+Route::livewire('/contributions', 'web::contributions')->name('web.contributions');
+Route::livewire('/contributions/{slug}', 'web::contribution')->name('web.contribution');
 
 Route::middleware('auth')->group(function () {
     Route::livewire('/app/', 'app::dashboard')->name('app.dashboard');
@@ -24,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/app/donations/', 'app::donations')->name('app.donations');
     Route::livewire('/app/recurring-plans/', 'app::recurring-plans')->name('app.recurring-plans');
     Route::livewire('/app/payment-attempts/', 'app::payment-attempts')->name('app.payment-attempts');
+    Route::livewire('/app/contributions/', 'app::contributions')->name('app.contributions');
 
     Route::livewire('/app/notifications/', 'app::notifications')->name('app.notifications');
 

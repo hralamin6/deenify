@@ -133,6 +133,13 @@
                                     <x-icon name="o-arrow-right" class="w-4 h-4" />
                                 </a>
                             </div>
+                                <a href="{{ route('web.campaign', $campaign->slug) }}" 
+                                   wire:navigate
+                                   class="btn btn-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg">
+                                    {{ __('View Details') }}
+                                    <x-icon name="o-arrow-right" class="w-4 h-4" />
+                                </a>
+                            </div>
                         </div>
                     </div>
                 @empty

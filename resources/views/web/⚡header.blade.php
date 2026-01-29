@@ -61,8 +61,11 @@ new class extends Component
             
             {{-- Desktop Navigation --}}
             <div class="hidden md:flex items-center gap-2">
-                <a href="{{ route('web.campaigns') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                <a href="{{ route('web.campaigns') }}" wire:navigate class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
                     {{ __('Campaigns') }}
+                </a>
+                <a href="{{ route('web.contributions') }}" wire:navigate class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    {{ __('Impact') }}
                 </a>
                 <a href="{{ route('web.home') }}#features" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
                     {{ __('Features') }}
@@ -186,6 +189,9 @@ new class extends Component
             {{-- Mobile Navigation Links --}}
             <a href="{{ route('web.campaigns') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
                 {{ __('Campaigns') }}
+            </a>
+            <a href="{{ route('web.contributions') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
+                {{ __('Impact') }}
             </a>
             <a href="{{ route('web.home') }}#features" @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
                 {{ __('Features') }}

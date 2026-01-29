@@ -49,5 +49,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call([DonationSystemSeeder::class,]);
+        $this->call([ContributionSeeder::class,]);
     }
 }

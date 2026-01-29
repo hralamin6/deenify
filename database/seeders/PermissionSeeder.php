@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class PermissionSeeder extends Seeder
 {
@@ -53,6 +54,10 @@ class PermissionSeeder extends Seeder
             'donations' => [
                 'donations.view', 'donations.create', 'donations.edit', 'donations.delete',
             ],
+            'contributions' => [
+                'contributions.view', 'contributions.create', 'contributions.edit', 'contributions.delete',
+            ],
+
             'recurring-plans' => [
                 'recurring-plans.view', 'recurring-plans.create', 'recurring-plans.edit', 'recurring-plans.delete',
             ],
@@ -96,6 +101,7 @@ class PermissionSeeder extends Seeder
             'donations.view', 'donations.create', 'donations.edit', 'donations.delete',
             'recurring-plans.view', 'recurring-plans.create', 'recurring-plans.edit', 'recurring-plans.delete',
             'payment-attempts.view', 'payment-attempts.edit', 'payment-attempts.delete',
+            'contributions.view', 'contributions.create', 'contributions.edit', 'contributions.delete',
         ])->get();
         $admin->syncPermissions($adminPerms);
 

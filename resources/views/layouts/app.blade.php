@@ -46,6 +46,9 @@
             @can('campaigns.view')
             <x-menu-item :title="__('Campaigns')" icon="o-flag" :link="route('app.campaigns')" route="app.campaigns"/>
             @endcan
+            @can('contributions.view')
+            <x-menu-item :title="__('Contributions')" icon="o-heart" :link="route('app.contributions')" route="app.contributions"/>
+            @endcan
             @can('expense-categories.view')
             <x-menu-item :title="__('Expense Categories')" icon="o-tag" :link="route('app.expense-categories')" route="app.expense-categories"/>
             @endcan

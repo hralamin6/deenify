@@ -43,26 +43,29 @@ class RecurringDonationPendingNotification extends Notification implements Shoul
     {
         $campaignTitle = $this->donation->campaign?->title ?? __('your campaign');
         $subject = $this->isReminder
-            ? __('Reminder: Recurring donation pending')
-            : __('Recurring donation created');
+            ? 'রিমাইন্ডার: আপনার নিয়মিত দান পরিশোধের সময় হয়েছে'
+            : 'আপনার প্রতিশ্রুতি - নিয়মিত দানের পেমেন্ট';
 
         return (new MailMessage)
             ->subject($subject)
-            ->greeting(__('Hello :name,', ['name' => $notifiable->name]))
-            ->line(__('A recurring donation for ":campaign" is pending.', ['campaign' => $campaignTitle]))
-            ->line(__('Amount: :amount', ['amount' => '৳'.number_format($this->donation->amount, 0)]))
-            ->action(__('Pay Now'), route('web.campaign', $this->donation->campaign?->slug))
-            ->line(__('Thank you for your support.'));
+            ->greeting('আসসালামু আলাইকুম ' . $notifiable->name . ',')
+            ->line('আল্লাহ আপনার ভালো করুন। দান করা একটি মহৎ কাজ যা ইহকাল ও পরকালে শান্তির কারণ।')
+            ->line('আপনার ওয়াদা অনুযায়ী "' . $campaignTitle . '" ক্যাম্পেইনে আপনার নিয়মিত দান (৳' . number_format($this->donation->amount, 0) . ') প্রদানের সময় হয়েছে।')
+            ->line('এই দানটি সম্পন্ন করে কল্যাণের পথে আপনার যাত্রা অব্যাহত রাখুন।')
+            ->action('পেমেন্ট সম্পন্ন করুন', route('web.campaign', $this->donation->campaign?->slug) . '#recurring')
+            ->line('আল্লাহ আপনার রিজিক বাড়িয়ে দিন। আমিন।');
     }
 
     public function toArray(object $notifiable): array
     {
+        $url = route('web.campaign', $this->donation->campaign?->slug) . '#recurring';
+
         return [
             'title' => $this->isReminder ? __('Recurring donation reminder') : __('Recurring donation pending'),
             'message' => __('You have a pending recurring donation for :campaign.', [
                 'campaign' => $this->donation->campaign?->title ?? __('a campaign'),
             ]),
-            'action_url' => route('web.campaign', $this->donation->campaign?->slug),
+            'url' => $url,
             'action_text' => __('Pay Now'),
             'icon' => 'o-arrow-path',
             'type' => 'info',

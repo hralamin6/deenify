@@ -109,125 +109,97 @@
                         </div>
                     </div>
 
-                    {{-- Recent Donors --}}
-                    <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 sm:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
-                        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('Recent Supporters') }}</h3>
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                                {{ number_format($campaign->paid_donations_count ?? 0) }} {{ __('Supporters') }}
-                            </span>
+                    {{-- Compact Grid: Timeline, Supporters, Expenses --}}
+                    <div class="grid gap-6 md:grid-cols-2">
+                        {{-- Timeline --}}
+                        <div class="md:col-span-2 rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ __('Campaign Timeline') }}</h3>
+                             <div class="flex flex-wrap items-center gap-6">
+                                 <div class="flex items-center gap-3">
+                                     <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                         <x-icon name="o-calendar" class="w-5 h-5 text-green-600 dark:text-green-400" />
+                                     </div>
+                                     <div>
+                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Starts') }}</p>
+                                         <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $campaign->starts_at?->format('M d, Y') ?? __('TBA') }}</p>
+                                     </div>
+                                 </div>
+                                 <div class="flex items-center gap-3">
+                                     <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                         <x-icon name="o-calendar" class="w-5 h-5 text-red-600 dark:text-red-400" />
+                                     </div>
+                                     <div>
+                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Ends') }}</p>
+                                         <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $campaign->ends_at?->format('M d, Y') ?? __('TBA') }}</p>
+                                     </div>
+                                 </div>
+                             </div>
                         </div>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            @forelse($donations as $donation)
-                                <div class="rounded-2xl border border-indigo-100 dark:border-indigo-800 bg-gradient-to-r from-indigo-50/80 via-sky-50/60 to-purple-50/80 dark:from-indigo-900/20 dark:via-sky-900/10 dark:to-purple-900/20 p-4 sm:p-5 shadow-sm transition-all hover:shadow-md">
-                                    <div class="flex items-start justify-between gap-4">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold">
+
+                        {{-- Recent Supporters (Compact) --}}
+                        <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('Supporters') }}</h3>
+                                <div class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                                    {{ number_format($campaign->paid_donations_count ?? 0) }}
+                                </div>
+                            </div>
+                            <div class="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                                @forelse($donations as $donation)
+                                    <div class="flex items-center justify-between gap-3 group">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white dark:ring-gray-800">
                                                 {{ substr($donation->donor_name, 0, 1) }}
                                             </div>
                                             <div>
-                                                <div class="flex flex-wrap items-center gap-2">
-                                                    <p class="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{{ $donation->donor_name }}</p>
-                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-tighter
-                                                        {{ $donation->status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' }}">
-                                                        {{ $donation->status }}
-                                                    </span>
-                                                </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ __('Paid') }}: {{ $donation->paid_at?->format('M d, Y · h:i A') ?? '-' }}
-                                                </p>
-                                                <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-                                                    {{ __('Reference') }}: #{{ $donation->id }}
-                                                </p>
+                                                <p class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{{ $donation->donor_name }}</p>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ $donation->paid_at?->diffForHumans() }}</p>
                                             </div>
                                         </div>
-                                        <div class="text-right">
-                                            <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">৳{{ number_format($donation->amount, 0) }}</p>
-                                            @if($donation->gateway)
-                                                <p class="mt-1 text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">
-                                                    {{ $donation->gateway }}
-                                                </p>
-                                            @endif
-                                        </div>
+                                        <span class="font-bold text-indigo-600 dark:text-indigo-400 text-sm">৳{{ number_format($donation->amount) }}</span>
                                     </div>
-                                </div>
-                            @empty
-                                <div class="sm:col-span-2 text-center py-8">
-                                    <x-icon name="o-heart" class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('No donations yet. Be the first to support!') }}</p>
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    {{-- Campaign Expenses --}}
-                    <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 sm:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
-                        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('Campaign Expenses') }}</h3>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ __('Total') }}</span>
-                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
-                                    ৳{{ number_format($expense, 0) }}
-                                </span>
+                                @empty
+                                    <div class="text-center py-6">
+                                        <p class="text-sm text-gray-500">{{ __('No supporters yet.') }}</p>
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
-                        <div class="grid gap-4">
-                            @forelse($expenses as $expenseItem)
-                                @php
-                                    $receiptUrl = getImage($expenseItem, 'receipt', null, null);
-                                    $hasReceipt = $receiptUrl && !str_contains($receiptUrl, 'placehold.co');
-                                @endphp
-                                <div class="group rounded-2xl border border-gray-100 dark:border-gray-700 bg-gradient-to-r from-rose-50/70 via-amber-50/50 to-orange-50/70 dark:from-rose-900/10 dark:via-amber-900/10 dark:to-orange-900/10 p-4 sm:p-5 shadow-sm transition-all hover:shadow-md">
-                                    <div class="flex flex-wrap items-start justify-between gap-4">
-                                        <div class="flex items-start gap-4">
-                                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70 dark:bg-gray-900/40 border border-white/60 dark:border-gray-700">
-                                                <x-icon name="o-receipt-refund" class="h-6 w-6 text-rose-600 dark:text-rose-400" />
-                                            </div>
+
+                        {{-- Expenses (Compact) --}}
+                        <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('Expenses') }}</h3>
+                                <div class="text-xs font-semibold px-2 py-1 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                                    ৳{{ number_format($expense, 0) }}
+                                </div>
+                            </div>
+                             <div class="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                                @forelse($expenses as $expenseItem)
+                                    @php
+                                        $receiptUrl = getImage($expenseItem, 'receipt', null, null);
+                                        $hasReceipt = $receiptUrl && !str_contains($receiptUrl, 'placehold.co');
+                                    @endphp
+                                    <div class="group relative pl-4 border-l-2 border-slate-200 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-500 transition-colors">
+                                        <div class="flex justify-between items-start gap-2">
                                             <div>
-                                                <div class="flex flex-wrap items-center gap-2">
-                                                    <p class="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-                                                        {{ $expenseItem->category?->name ?? __('Uncategorized') }}
-                                                    </p>
-                                                    <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-white/70 dark:bg-gray-900/40 text-gray-600 dark:text-gray-300 border border-white/60 dark:border-gray-700">
-                                                        {{ $expenseItem->spent_at?->format('M d, Y') ?? __('Date not set') }}
-                                                    </span>
-                                                </div>
-                                                @if($expenseItem->description)
-                                                    <p class="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                                                        {{ $expenseItem->description }}
-                                                    </p>
-                                                @endif
-                                                <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
-                                                    {{ __('Recorded') }}: {{ $expenseItem->created_at?->diffForHumans() ?? '-' }}
-                                                </p>
+                                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $expenseItem->category?->name ?? __('Expense') }}</p>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ $expenseItem->spent_at?->format('M d') }}</p>
                                             </div>
+                                            <span class="font-bold text-red-600 dark:text-red-400 text-sm">৳{{ number_format($expenseItem->amount) }}</span>
                                         </div>
-                                        <div class="text-right">
-                                            <p class="text-lg font-bold text-rose-600 dark:text-rose-400">৳{{ number_format($expenseItem->amount, 0) }}</p>
-                                            @if($hasReceipt)
-                                                <div class="mt-2 flex flex-col items-end gap-1">
-                                                    <a href="{{ $receiptUrl }}" target="_blank" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                                                        {{ __('View Receipt') }}
-                                                    </a>
-                                                    <a href="{{ $receiptUrl }}" download class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                                                        {{ __('Download Receipt') }}
-                                                    </a>
-                                                </div>
-                                            @else
-                                                <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
-                                                    <x-icon name="o-minus-circle" class="h-4 w-4" />
-                                                    {{ __('No receipt uploaded') }}
-                                                </span>
-                                            @endif
-                                        </div>
+                                        @if($hasReceipt)
+                                            <a href="{{ $receiptUrl }}" target="_blank" class="mt-1 inline-flex items-center gap-1 text-[10px] text-blue-500 hover:underline">
+                                                 <x-icon name="o-paper-clip" class="w-3 h-3" /> {{ __('Receipt') }}
+                                            </a>
+                                        @endif
                                     </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-10">
-                                    <x-icon name="o-receipt-percent" class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('No expenses reported yet.') }}</p>
-                                </div>
-                            @endforelse
+                                @empty
+                                     <div class="text-center py-6">
+                                        <p class="text-sm text-gray-500">{{ __('No expenses yet.') }}</p>
+                                    </div>
+                                @endforelse
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -261,29 +233,50 @@
                                 <div class="px-2 pb-2 mb-2 border-b border-gray-100 dark:border-gray-700">
                                     <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ __('Spread the Word') }}</p>
                                 </div>
-                                <div class="grid grid-cols-2 gap-2">
+                                <div class="grid grid-cols-3 gap-2">
                                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors group">
                                         <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                                         <span class="mt-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">Facebook</span>
+                                    </a>
+                                    <a href="https://x.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group">
+                                        <svg class="w-6 h-6 text-gray-900 dark:text-white group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.134l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-gray-600 dark:text-gray-400">X</span>
                                     </a>
                                     <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors group">
                                         <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                                         <span class="mt-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">WhatsApp</span>
                                     </a>
-                                    <a href="https://x.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group">
-                                        <svg class="w-6 h-6 text-gray-900 dark:text-white group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.134l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                                        <span class="mt-1 text-[10px] font-bold text-gray-600 dark:text-gray-400">X (Twitter)</span>
+                                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ $shareUrl }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors group">
+                                        <svg class="w-6 h-6 text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-sky-600 dark:text-sky-400">LinkedIn</span>
+                                    </a>
+                                    <a href="https://www.reddit.com/submit?url={{ $shareUrl }}&title={{ $shareText }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors group">
+                                        <svg class="w-6 h-6 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-orange-600 dark:text-orange-400">Reddit</span>
+                                    </a>
+                                    <a href="https://t.me/share/url?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 transition-colors group">
+                                        <svg class="w-6 h-6 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42 10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701h-.002l.002.001-.314 4.692c.46 0 .663-.211.921-.46l2.211-2.15 4.599 3.397c.848.467 1.457.227 1.668-.785l3.019-14.228c.309-1.239-.473-1.8-1.282-1.44z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-cyan-600 dark:text-cyan-400">Telegram</span>
+                                    </a>
+                                    <a href="mailto:?subject={{ $shareText }}&body={{ $shareText }}%0A%0A{{ $shareUrl }}" class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group">
+                                        <x-icon name="o-envelope" class="w-6 h-6 text-gray-600 dark:text-gray-400 group-hover:scale-110 transition-transform" />
+                                        <span class="mt-1 text-[10px] font-bold text-gray-600 dark:text-gray-400">Email</span>
+                                    </a>
+                                    <a href="https://www.pinterest.com/pin/create/button/?url={{ $shareUrl }}&description={{ $shareText }}" target="_blank" rel="noopener" class="flex flex-col items-center justify-center p-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors group">
+                                        <svg class="w-6 h-6 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.65 0-5.789 2.733-5.789 5.558 0 1.103.425 2.286.953 2.922.105.126.12.235.089.425-.098.408-.312 1.272-.355 1.45-.062.253-.2.308-.464.187-1.731-.806-2.527-2.983-2.527-4.809 0-3.912 3.109-7.502 8.358-7.502 4.385 0 7.272 3.166 7.272 6.551 0 3.909-2.203 6.945-5.263 6.945-1.029 0-1.996-.534-2.328-1.164l-.633 2.411c-.229.89-1.724 3.864-2.306 5.176.883.254 1.831.395 2.812.395 6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/></svg>
+                                        <span class="mt-1 text-[10px] font-bold text-red-600 dark:text-red-400">Pinterest</span>
                                     </a>
                                     <button type="button" @click="
+                                        const title = decodeURIComponent('{{ $shareText }}');
+                                        const url = decodeURIComponent('{{ $shareUrl }}');
                                         if (navigator.share) {
-                                            navigator.share({ title: decodeURIComponent('{{ $shareText }}'), url: decodeURIComponent('{{ $shareUrl }}') }).catch(()=>{});
+                                            navigator.share({ title, text: title, url }).catch(()=>{});
                                         } else {
-                                            navigator.clipboard.writeText(decodeURIComponent('{{ $shareUrl }}'));
-                                            alert('Link copied to clipboard!');
+                                            alert('Sharing not supported on this browser.');
                                         }
                                     " class="flex flex-col items-center justify-center p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors group">
-                                        <x-icon name="o-share" class="w-6 h-6 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
-                                        <span class="mt-1 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ __('System Share') }}</span>
+                                        <x-icon name="o-device-phone-mobile" class="w-6 h-6 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                                        <span class="mt-1 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ __('Device') }}</span>
                                     </button>
                                 </div>
                                 <button @click="navigator.clipboard.writeText(decodeURIComponent('{{ $shareUrl }}')); alert('Link copied!');" class="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 flex items-center justify-center gap-2 transition-all">
@@ -319,14 +312,35 @@
                                                     @if($donation->gateway)
                                                         <span class="text-[9px] text-gray-400 mt-1 uppercase">{{ $donation->gateway }}</span>
                                                     @endif
-                                                    <button type="button"
-                                                            wire:click="downloadInvoice({{ $donation->id }})"
-                                                            wire:loading.attr="disabled"
-                                                            wire:target="downloadInvoice"
-                                                            class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
-                                                        <x-icon name="o-document-text" class="w-3 h-3" />
-                                                        {{ __('Download Invoice') }}
-                                                    </button>
+                                                    @if($donation->status === 'paid')
+                                                        <button type="button"
+                                                                wire:click="downloadInvoice({{ $donation->id }})"
+                                                                wire:loading.attr="disabled"
+                                                                wire:target="downloadInvoice"
+                                                                class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
+                                                            <x-icon name="o-document-text" class="w-3 h-3" />
+                                                            {{ __('Download Invoice') }}
+                                                        </button>
+                                                    @elseif($donation->status === 'pending')
+                                                        @php
+                                                            $latestAttempt = $donation->paymentAttempts->last();
+                                                            $isVerifying = $latestAttempt && in_array($latestAttempt->status, ['pending', 'pending_verification']);
+                                                        @endphp
+
+                                                        @if($isVerifying)
+                                                            <span class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 cursor-help" title="{{ __('Payment verification is in progress') }}">
+                                                                <x-icon name="o-clock" class="w-3 h-3" />
+                                                                {{ __('Verifying...') }}
+                                                            </span>
+                                                        @else
+                                                            <button type="button"
+                                                                    wire:click="payPendingRecurringDonation({{ $donation->id }})"
+                                                                    class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
+                                                                <x-icon name="o-credit-card" class="w-3 h-3" />
+                                                                {{ __('Pay Now') }}
+                                                            </button>
+                                                        @endif
+                                                    @endif
                                                 </div>
                                             </div>
                                         @endforeach
@@ -339,36 +353,10 @@
                                 </div>
                             @endif
                         @endauth
-
-                        <div class="mt-6 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
-                            <p class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold mb-2">{{ __('Payment Methods') }}</p>
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                    <x-icon name="o-check-circle" class="w-4 h-4 text-green-600" />
-                                    {{ __('ShurjoPay - bKash, Nagad, Cards') }}
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                    <x-icon name="o-check-circle" class="w-4 h-4 text-green-600" />
-                                    {{ __('AamarPay - All major methods') }}
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                    <x-icon name="o-check-circle" class="w-4 h-4 text-pink-600" />
-                                    {{ __('bKash - Manual Send Money') }}
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                    <x-icon name="o-check-circle" class="w-4 h-4 text-orange-600" />
-                                    {{ __('Nagad - Manual Send Money') }}
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                    <x-icon name="o-check-circle" class="w-4 h-4 text-purple-600" />
-                                    {{ __('Rocket - Manual Send Money') }}
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {{-- Recurring Support Card --}}
-                    <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                    <div id="recurring" class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                                 <x-icon name="o-arrow-path" class="w-6 h-6 text-white" />
@@ -424,16 +412,28 @@
                                         @endphp
                                         <div class="space-y-2">
                                             @if($pendingDonation)
+                                                @php
+                                                    $latestAttempt = $pendingDonation->paymentAttempts->last();
+                                                    $isVerifying = $latestAttempt && in_array($latestAttempt->status, ['pending', 'pending_verification']);
+                                                @endphp
                                                 <div class="flex items-center justify-between rounded-xl bg-amber-50 dark:bg-amber-900/10 px-3 py-2 border border-amber-100 dark:border-amber-800">
                                                     <span class="text-xs text-amber-700 dark:text-amber-300">{{ __('Pending since') }} {{ $pendingDonation->created_at?->format('M d, Y') }}</span>
                                                     <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">৳{{ number_format($pendingDonation->amount, 0) }}</span>
                                                 </div>
-                                                <button type="button"
-                                                        wire:click="payPendingRecurringDonation({{ $pendingDonation->id }})"
-                                                        class="w-full btn btn-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0">
-                                                    <x-icon name="o-credit-card" class="w-4 h-4" />
-                                                    {{ __('Pay Pending Donation') }}
-                                                </button>
+                                                
+                                                @if($isVerifying)
+                                                    <div class="w-full py-2 text-center rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                                        <x-icon name="o-clock" class="w-4 h-4 inline mr-1" />
+                                                        {{ __('Payment verification in progress') }}
+                                                    </div>
+                                                @else
+                                                    <button type="button"
+                                                            wire:click="payPendingRecurringDonation({{ $pendingDonation->id }})"
+                                                            class="w-full btn btn-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0">
+                                                        <x-icon name="o-credit-card" class="w-4 h-4" />
+                                                        {{ __('Pay Pending Donation') }}
+                                                    </button>
+                                                @endif
                                             @elseif($nextDate)
                                                 <div class="flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-900/30 px-3 py-2">
                                                     <span class="text-xs text-gray-600 dark:text-gray-400">{{ $nextDate->format('M d, Y') }}</span>
@@ -458,11 +458,38 @@
                                                         'cancelled' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
                                                         default => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
                                                     };
+                                                    
+                                                    $latestAttempt = $donation->paymentAttempts->last();
+                                                    $isVerifying = $latestAttempt && in_array($latestAttempt->status, ['pending', 'pending_verification']);
                                                 @endphp
                                                 <div class="flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-900/30 px-3 py-2">
                                                     <div>
                                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ $donation->created_at?->format('M d, Y') }}</p>
-                                                        <p class="text-xs font-semibold text-gray-800 dark:text-gray-200">৳{{ number_format($donation->amount, 0) }}</p>
+                                                        <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">৳{{ number_format($donation->amount, 0) }}</p>
+                                                        
+                                                        @if($donation->status === 'paid')
+                                                            <button type="button"
+                                                                    wire:click="downloadInvoice({{ $donation->id }})"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="downloadInvoice"
+                                                                    class="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
+                                                                <x-icon name="o-document-text" class="w-3 h-3" />
+                                                                {{ __('Invoice') }}
+                                                            </button>
+                                                        @elseif($donation->status === 'pending')
+                                                            @if($isVerifying)
+                                                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400" title="{{ __('Verifying') }}">
+                                                                    <x-icon name="o-clock" class="w-3 h-3" /> {{ __('Verifying') }}
+                                                                </span>
+                                                            @else
+                                                                <button type="button"
+                                                                        wire:click="payPendingRecurringDonation({{ $donation->id }})"
+                                                                        class="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
+                                                                    <x-icon name="o-credit-card" class="w-3 h-3" />
+                                                                    {{ __('Pay') }}
+                                                                </button>
+                                                            @endif
+                                                        @endif
                                                     </div>
                                                     <span class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wide {{ $donationStatusClass }}">
                                                         {{ $donation->status }}
@@ -551,48 +578,11 @@
                         @endguest
                     </div>
 
-                    {{-- Campaign Timeline --}}
-                    <div class="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ __('Campaign Timeline') }}</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                    <x-icon name="o-calendar" class="w-5 h-5 text-green-600 dark:text-green-400" />
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Starts') }}</p>
-                                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $campaign->starts_at?->format('M d, Y') ?? __('TBA') }}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                                    <x-icon name="o-calendar" class="w-5 h-5 text-red-600 dark:text-red-400" />
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Ends') }}</p>
-                                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $campaign->ends_at?->format('M d, Y') ?? __('TBA') }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
     </section>
-
-    {{-- Mobile Sticky Footer --}}
-    <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-4 shadow-lg">
-        <div class="flex items-center justify-between gap-3">
-            <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Goal') }}: ৳{{ number_format($goal, 0) }}</p>
-                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $progress }}% {{ __('raised') }}</p>
-            </div>
-            <button wire:click="$set('showDonateModal', true)" class="btn btn-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg">
-                <x-icon name="o-heart" class="w-4 h-4" />
-                {{ __('Donate') }}
-            </button>
-        </div>
-    </div>
 
     {{-- Donate Modal --}}
     <x-modal wire:model="showDonateModal" :title="__('Support') . ' ' . $campaign->title" class="backdrop-blur">

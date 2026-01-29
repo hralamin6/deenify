@@ -274,4 +274,42 @@ new #[Title('Donations')] #[Layout('layouts.app')] class extends Component
         $this->selectedRows = [];
         $this->success(__('Donations deleted successfully'));
     }
+
+    public function sendReminder(Donation $donation): void
+    {
+        $this->authorize('donations.edit');
+
+        if ($donation->status !== 'pending') {
+            $this->error(__('Donation is not pending.'));
+            return;
+        }
+
+        if (! $donation->user) {
+            $this->error(__('Donation has no associated user.'));
+            return;
+        }
+
+        // Check verification (load if not loaded, though check latest usually sufficient)
+        $latestAttempt = $donation->paymentAttempts()->latest()->first();
+        if ($latestAttempt?->status === 'pending_verification') {
+            $this->error(__('Payment is pending verification.'));
+            return;
+        }
+
+        if ($donation->recurring_plan_id) {
+            // Recurring Donation Reminder
+            $donation->user->notify(new \App\Notifications\RecurringDonationPendingNotification($donation, true));
+        } else {
+            // One-time Donation Reminder
+            $donation->user->notify(new \App\Notifications\TaskNotification(
+                title: __('Donation Reminder'),
+                message: __('You have a pending donation for :campaign. Please complete your payment.', ['campaign' => $donation->campaign->title]),
+                url: route('web.campaign', $donation->campaign->slug).'#donate',
+                icon: 'o-bell',
+                type: 'info'
+            ));
+        }
+
+        $this->success(__('Reminder sent successfully'));
+    }
 };

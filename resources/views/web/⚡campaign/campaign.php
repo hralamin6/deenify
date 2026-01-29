@@ -120,7 +120,7 @@ new #[Title('Campaign Details')] #[Layout('layouts.auth')] class extends Compone
         // If user is not logged in, require name, email, and password
         if (! auth()->check()) {
             $rules['donor_name'] = 'required|string|max:255';
-            $rules['donor_email'] = 'required|email|max:255';
+            $rules['donor_email'] = 'required|email:rfc,dns|max:255';
             $rules['donor_password'] = 'required|string|min:8';
         }
 

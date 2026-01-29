@@ -195,6 +195,16 @@
                             <td class="text-center items-center">
                                 <div class="flex items-center justify-center gap-2">
                                     @can('donations.edit')
+                                        @if($item->status === 'pending' && $item->user_id && $attempt?->status !== 'pending_verification')
+                                            <x-button
+                                                wire:click="sendReminder({{ $item->id }})"
+                                                wire:confirm="{{ __('Are you sure you want to send a reminder?') }}"
+                                                icon="o-bell"
+                                                class="btn-ghost btn-sm text-warning"
+                                                tooltip="{{ __('Send Reminder') }}" />
+                                        @endif
+                                    @endcan
+                                    @can('donations.edit')
                                         <x-button
                                             @click="editModal({{ $item->id }})"
                                             icon="o-pencil"

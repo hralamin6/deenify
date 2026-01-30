@@ -152,7 +152,13 @@
                                                 {{ substr($donation->donor_name, 0, 1) }}
                                             </div>
                                             <div>
-                                                <p class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{{ $donation->donor_name }}</p>
+                                                @if($donation->user_id)
+                                                    <a href="{{ route('web.donor-profile', $donation->user_id) }}" wire:navigate class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1 hover:text-indigo-600">
+                                                        {{ $donation->donor_name }}
+                                                    </a>
+                                                @else
+                                                    <p class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{{ $donation->donor_name }}</p>
+                                                @endif
                                                 <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ $donation->paid_at?->diffForHumans() }}</p>
                                             </div>
                                         </div>

@@ -9,7 +9,7 @@ new class extends Component
 
     public function toggleMobileMenu()
     {
-        $this->mobileMenuOpen = !$this->mobileMenuOpen;
+        $this->mobileMenuOpen = ! $this->mobileMenuOpen;
     }
 
     public function switchLanguage($locale)
@@ -23,17 +23,22 @@ new class extends Component
 
     public function getUnreadMessagesCountProperty()
     {
-        if (!auth()->check()) return 0;
-        
+        if (! auth()->check()) {
+            return 0;
+        }
+
         return auth()->user()
             ->conversations()
             ->get()
-            ->sum(fn($conversation) => $conversation->getUnreadCount(auth()->id()));
+            ->sum(fn ($conversation) => $conversation->getUnreadCount(auth()->id()));
     }
 
     public function getUnreadNotificationsCountProperty()
     {
-        if (!auth()->check()) return 0;
+        if (! auth()->check()) {
+            return 0;
+        }
+
         return auth()->user()->unreadNotifications()->count();
     }
 
@@ -65,13 +70,23 @@ new class extends Component
                     {{ __('Campaigns') }}
                 </a>
                 <a href="{{ route('web.contributions') }}" wire:navigate class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    {{ __('Contributions') }}
+                </a>
+                <a href="{{ route('web.expenses') }}" wire:navigate class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    {{ __('Expenses') }}
+                </a>
+
+                <a href="{{ route('web.impact') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
                     {{ __('Impact') }}
                 </a>
-                <a href="{{ route('web.home') }}#features" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                    {{ __('Features') }}
+                <a href="{{ route('web.trust') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    {{ __('Trust') }}
                 </a>
-                <a href="{{ route('web.home') }}#reports" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                    {{ __('Reports') }}
+                <a href="{{ route('web.donors') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    {{ __('Donors') }}
+                </a>
+                <a href="{{ route('web.recurring') }}" wire:navigate class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    {{ __('Give Monthly') }}
                 </a>
             </div>
 
@@ -144,6 +159,9 @@ new class extends Component
                 @if (Route::has('login'))
                     <div class="hidden sm:flex items-center gap-2">
                         @auth
+                            <a wire:navigate href="{{ route('web.donor-profile', auth()->id()) }}" class="btn btn-ghost btn-sm">
+                                {{ __('My Donor Profile') }}
+                            </a>
                         <form method="POST" action="{{ route('logout') }}">
                   @csrf
                   <button type="submit" class="btn btn-circle btn-error btn-xs hover:scale-105 transition-transform" aria-label="Logout">
@@ -191,20 +209,29 @@ new class extends Component
                 {{ __('Campaigns') }}
             </a>
             <a href="{{ route('web.contributions') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
+                {{ __('Contributions') }}
+            </a>
+            <a href="{{ route('web.expenses') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
+                {{ __('Expenses') }}
+            </a>    
+            <a href="{{ route('web.impact') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
                 {{ __('Impact') }}
             </a>
-            <a href="{{ route('web.home') }}#features" @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
-                {{ __('Features') }}
+            <a href="{{ route('web.trust') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
+                {{ __('Trust') }}
             </a>
-            <a href="{{ route('web.home') }}#reports" @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
-                {{ __('Reports') }}
+            <a href="{{ route('web.donors') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
+                {{ __('Donors') }}
+            </a>
+            <a href="{{ route('web.recurring') }}" wire:navigate @click="mobileMenuOpen = false" class="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
+                {{ __('Give Monthly') }}
             </a>
 
             {{-- Mobile Auth Buttons --}}
             @if (Route::has('login'))
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                    @auth
-                        {{-- Mobile Badges --}}
+                        @auth
+                            {{-- Mobile Badges --}}
                          <div class="grid grid-cols-2 gap-2 mb-2">
                             <a wire:navigate href="{{ route('app.chat') }}" @click="mobileMenuOpen = false" class="flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition border border-gray-100 dark:border-gray-800">
                                 <div class="indicator">
@@ -226,6 +253,9 @@ new class extends Component
                             </a>
                         </div>
 
+                        <a wire:navigate href="{{ route('web.donor-profile', auth()->id()) }}" @click="mobileMenuOpen = false" class="block pt-2 w-full btn btn-ghost">
+                            {{ __('My Donor Profile') }}
+                        </a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="block w-full btn btn-outline border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white" aria-label="Logout">

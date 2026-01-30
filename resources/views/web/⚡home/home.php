@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Campaign;
+use App\Models\Contribution;
 use App\Models\Donation;
 use App\Models\DonationReceipt;
 use App\Models\Expense;
@@ -23,6 +24,7 @@ class extends Component
     public $recentDonors = [];
     public $topCampaigns = [];
     public array $paymentSplit = [];
+    public $recentContributions = [];
 
     public function mount(): void
     {
@@ -101,5 +103,11 @@ class extends Component
                 return [$row->gateway => ['count' => (int) $row->count, 'total' => (float) $row->total]];
             })
             ->toArray();
+
+        $this->recentContributions = Contribution::query()
+            ->where('status', 'published')
+            ->latest('date')
+            ->limit(3)
+            ->get();
     }
 };

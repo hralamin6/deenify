@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/auth.php';
 
 Route::livewire('/', 'web::home')->name('web.home');
+Route::livewire('/impact', 'web::impact')->name('web.impact');
+Route::livewire('/trust', 'web::trust')->name('web.trust');
+Route::livewire('/donors', 'web::donors')->name('web.donors');
+Route::livewire('/donors/{user}', 'web::donor-profile')->name('web.donor-profile');
+Route::livewire('/recurring', 'web::recurring')->name('web.recurring');
+Route::livewire('/expenses', 'web::expenses')->name('web.expenses');
 Route::livewire('/campaigns', 'web::campaigns')->name('web.campaigns');
 Route::livewire('/campaigns/{slug}', 'web::campaign')->name('web.campaign');
 Route::livewire('/contributions', 'web::contributions')->name('web.contributions');

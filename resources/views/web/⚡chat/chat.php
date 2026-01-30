@@ -14,7 +14,7 @@ use Mary\Traits\Toast;
 
 new
 #[Title('Chat')]
-#[Layout('layouts.app')]
+#[Layout('layouts.auth')]
 class extends Component
 {
     use Toast;
@@ -84,7 +84,6 @@ class extends Component
     {
         // If conversation ID provided in URL, select it
         if ($conversation) {
-            //        dd($conversation);
             $conv = Conversation::find($conversation);
             if ($conv && $conv->hasUser(auth()->id())) {
                 $this->selectedConversationId = $conv->id;
@@ -103,7 +102,6 @@ class extends Component
         if ($firstConversation) {
             $this->selectedConversationId = $firstConversation->id;
             $this->selectConversation($firstConversation->id);
-
         }
     }
 
@@ -149,11 +147,6 @@ class extends Component
             })
             ->orderBy('updated_at', 'desc')
             ->get();
-    }
-
-    public function getConversationsProperty()
-    {
-        return $this->conversations();
     }
 
     #[Computed]
@@ -271,7 +264,7 @@ class extends Component
             ->value('is_blocked');
 
         if ($isBlockedByMe || $isBlockedByOther) {
-            $this->error('Cannot send message. This conversation is blocked.');
+            $this->error(__('Cannot send message. This conversation is blocked.'));
 
             return;
         }
@@ -300,12 +293,8 @@ class extends Component
         // Update conversation
         $conversation->update(['last_message_at' => now()]);
 
-        // No broadcast needed - using whisper instead
-
         // Send notification
         $otherUser = $conversation->getOtherUser(auth()->id());
-
-        // Check if user is online to send push notification
         $sendPush = $otherUser->isOnline();
         $otherUser->notify(new \App\Notifications\NewMessageNotification($message, $sendPush));
 
@@ -396,19 +385,15 @@ class extends Component
         $conversation = Conversation::find($this->selectedConversationId);
 
         if ($conversation && $conversation->hasUser(auth()->id())) {
-            // Delete all messages in the conversation
             Message::where('conversation_id', $this->selectedConversationId)->delete();
-
-            // Delete the conversation
             $conversation->delete();
 
-            // Reset selection
             $this->selectedConversationId = null;
             $this->body = '';
             $this->replyingTo = null;
             $this->editingMessageId = null;
 
-            $this->success('Conversation deleted successfully.');
+            $this->success(__('Conversation deleted successfully.'));
         }
     }
 
@@ -421,13 +406,12 @@ class extends Component
         $conversation = Conversation::find($this->selectedConversationId);
 
         if ($conversation && $conversation->hasUser(auth()->id())) {
-            // Update is_blocked field in conversation_user pivot table
             \DB::table('conversation_user')
                 ->where('conversation_id', $this->selectedConversationId)
                 ->where('user_id', auth()->id())
                 ->update(['is_blocked' => true]);
 
-            $this->success('User blocked successfully.');
+            $this->success(__('User blocked successfully.'));
         }
     }
 
@@ -440,13 +424,12 @@ class extends Component
         $conversation = Conversation::find($this->selectedConversationId);
 
         if ($conversation && $conversation->hasUser(auth()->id())) {
-            // Update is_blocked field in conversation_user pivot table
             \DB::table('conversation_user')
                 ->where('conversation_id', $this->selectedConversationId)
                 ->where('user_id', auth()->id())
                 ->update(['is_blocked' => false]);
 
-            $this->success('User unblocked successfully.');
+            $this->success(__('User unblocked successfully.'));
         }
     }
 
@@ -455,7 +438,6 @@ class extends Component
     // ==========================================
     public function refreshMessages(): void
     {
-        // Mark unread messages as read when refreshing
         $this->markUnreadMessagesAsRead();
     }
 
@@ -470,7 +452,6 @@ class extends Component
             return false;
         }
 
-        // Check if current user has blocked this conversation
         $result = \DB::table('conversation_user')
             ->where('conversation_id', $this->selectedConversationId)
             ->where('user_id', auth()->id())
@@ -485,18 +466,14 @@ class extends Component
             return;
         }
 
-        // Mark all unread messages in this conversation as read
-        // Use DB::table to prevent updated_at from changing
         $updated = \DB::table('messages')
             ->where('conversation_id', $this->selectedConversationId)
             ->where('user_id', '!=', auth()->id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        // If messages were marked as read, whisper to sender and refresh conversations
         if ($updated > 0) {
             $this->dispatch('messages-marked-read');
-            // Force refresh conversations list to update unread count
             $this->dispatch('$refresh');
         }
     }

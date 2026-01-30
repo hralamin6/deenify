@@ -29,7 +29,7 @@
         {{-- ========================================== --}}
         {{-- SIDEBAR: CONVERSATIONS LIST --}}
         {{-- ========================================== --}}
-        <div class="w-full md:w-96 border-r border-base-300 flex flex-col">
+        <div class="w-full md:w-96 border-r border-base-300 flex flex-col {{ $selectedConversationId ? 'hidden md:flex' : '' }}">
             {{-- Sidebar Header --}}
             <div class="p-4 border-b border-base-300 bg-gradient-to-r from-primary/10 to-secondary/10">
                 <div class="flex items-center justify-between mb-3">
@@ -138,7 +138,7 @@
         {{-- ========================================== --}}
         {{-- MAIN CHAT AREA --}}
         {{-- ========================================== --}}
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col {{ ! $selectedConversationId ? 'hidden md:flex' : '' }}">
             @if($selectedConversationId && $this->selectedConversation)
                 @php
                     $otherUser = $this->selectedConversation->getOtherUser(auth()->id());
@@ -148,6 +148,13 @@
                 <div class="p-4 border-b border-base-300 bg-base-100 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
+                            <button
+                                wire:click="$set('selectedConversationId', null)"
+                                class="btn btn-ghost btn-sm btn-circle md:hidden"
+                                aria-label="{{ __('Back to conversations') }}"
+                            >
+                                <x-icon name="o-arrow-left" class="w-5 h-5" />
+                            </button>
                             <div class="avatar {{ $otherUser->isOnline() ? 'online' : 'offline' }}">
                                 <div class="w-10 h-10 rounded-full ring-2 ring-primary ring-offset-2">
                                     <img src="{{ $otherUser->avatar_url }}" alt="{{ $otherUser->name }}" />

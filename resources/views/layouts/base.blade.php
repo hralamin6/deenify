@@ -60,6 +60,7 @@
             init() {
               // Don't run on chat page (chat component handles its own listeners)
               if (this.isChatPage()) {
+                // alert('asd');
                 console.log('⏭️ Skipping global listeners (on chat page)');
                 this.cleanup();
                 return;

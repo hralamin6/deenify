@@ -13,6 +13,12 @@ Route::livewire('/recurring', 'web::recurring')->name('web.recurring');
 Route::livewire('/expenses', 'web::expenses')->name('web.expenses');
 Route::livewire('/campaigns', 'web::campaigns')->name('web.campaigns');
 Route::livewire('/campaigns/{slug}', 'web::campaign')->name('web.campaign');
+
+Route::middleware('auth')->group(function () {
+    Route::livewire('/profile', 'web::profile')->name('web.profile');
+    Route::livewire('/notifications', 'web::notifications')->name('web.notifications');
+    Route::livewire('/chat/{conversation?}', 'web::chat')->name('web.chat');
+});
 Route::livewire('/contributions', 'web::contributions')->name('web.contributions');
 Route::livewire('/contributions/{slug}', 'web::contribution')->name('web.contribution');
 

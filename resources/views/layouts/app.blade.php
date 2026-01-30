@@ -42,7 +42,9 @@
 
           {{-- Activates the menu item when a route matches the `link` property --}}
           <x-menu activate-by-route>
+            @can('dashboard.view')
             <x-menu-item :title="__('Dashboard')" icon="o-home" :link="route('app.dashboard')" route="app.dashboard" />
+            @endcan
             @can('campaigns.view')
             <x-menu-item :title="__('Campaigns')" icon="o-flag" :link="route('app.campaigns')" route="app.campaigns"/>
             @endcan

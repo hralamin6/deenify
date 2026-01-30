@@ -18,7 +18,7 @@
             {{-- User Info Card --}}
             <x-card class="p-5">
                 <div class="flex items-center gap-4">
-                    <x-avatar :image="$avatarUrl" alt="{{ auth()->user()->name }}" class="w-16 h-16 ring-2 ring-primary/20" />
+                    <x-avatar :image="userImage(auth()->user(), 'profile', 'thumb')" alt="{{ auth()->user()->name }}" class="w-16 h-16 ring-2 ring-primary/20" />
                     <div>
                         <div class="font-semibold text-base-content/90">{{ $name }}</div>
                         <div class="text-sm text-base-content/60">{{ $email }}</div>

@@ -1,7 +1,7 @@
 <div>
     {{-- Navigation --}}
     {{-- Hero Section --}}
-    <section class="relative overflow-hidden py-12 sm:py-20">
+    <section class="relative overflow-hidden py-0 sm:py-6">
         <div class="absolute inset-0 -z-10">
             <div class="absolute top-0 right-0 h-96 w-96 rounded-full bg-purple-300/30 dark:bg-purple-600/20 blur-3xl"></div>
             <div class="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-indigo-300/30 dark:bg-indigo-600/20 blur-3xl"></div>

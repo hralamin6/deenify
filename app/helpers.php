@@ -9,7 +9,7 @@ if (! function_exists('setting')) {
     }
 }
 if (! function_exists('userImage')) {
-    function userImage($model, $collection = 'profile', $conversion = '')
+    function userImage($model, $collection = 'profile', $conversion = 'thumb')
     {
         $media = $model->getFirstMedia($collection);
 

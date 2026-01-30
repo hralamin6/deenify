@@ -13,7 +13,7 @@
         @endisset
 
         {{-- Footer --}}
-        <footer class="mt-8">
+        <footer class="mt-4">
             <div class="mx-auto w-full max-w-6xl px-6 pb-8">
                 <div class="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-white/80 via-white/60 to-white/80 p-5 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.6)] backdrop-blur dark:border-white/10 dark:from-slate-900/70 dark:via-slate-900/50 dark:to-slate-900/70">
                     <div class="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-indigo-200/40 blur-2xl dark:bg-indigo-500/20"></div>

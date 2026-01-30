@@ -47,7 +47,7 @@ class Page extends Model implements HasMedia
     //    public function registerMediaCollections(): void
     //    {
     //        $this->addMediaCollection('featured_image')->singleFile()->registerMediaConversions(function (?Media $media = null) {
-    //            $this->addMediaConversion('thumb')->quality('10')->nonQueued();
+    //            $this->addMediaConversion('thumb')->quality('80')->nonQueued();
     //        });
     //    }
 

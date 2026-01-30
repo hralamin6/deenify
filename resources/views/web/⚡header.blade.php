@@ -39,12 +39,12 @@ new class extends Component
     #[On('notification-received')]
     public function refreshCounts()
     {
-        $this->dispatch('$refresh');
+        $this->dispatch('$refresh'); 
     }
 };
 ?>
 
-<div x-data="{ exploreOpen: false, userOpen: false, langOpen: false, mobileMenuOpen: false, mobileUserOpen: false }">
+<div x-data="{ exploreOpen: false, userOpen: false, langOpen: false, mobileMenuOpen: false, mobileUserOpen: false }" class="overflow-visible">
     @php
         $isHome = request()->routeIs('web.home');
         $isCampaigns = request()->routeIs('web.campaigns') || request()->routeIs('web.campaign');
@@ -60,7 +60,7 @@ new class extends Component
         $isChat = request()->routeIs('web.chat');
     @endphp
 
-    <nav class="lg:sticky lg:top-0 z-50 border-b border-gray-200/70 dark:border-gray-800/70 bg-white/90 dark:bg-gray-900/80 backdrop-blur">
+    <nav class="lg:sticky lg:top-0 z-[200] isolate overflow-visible border-b border-gray-200/70 dark:border-gray-800/70 bg-white/90 dark:bg-gray-900/80 backdrop-blur">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-14 items-center justify-between gap-4">
                 <a href="{{ route('web.home') }}" wire:navigate class="flex items-center gap-2">
@@ -142,37 +142,40 @@ new class extends Component
                         <button @click="langOpen = !langOpen" class="btn btn-ghost btn-circle btn-sm" aria-label="Language">
                             <x-icon name="o-language" class="w-5 h-5" />
                         </button>
-                        <div x-show="langOpen"
-                            x-cloak
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 scale-95"
-                            x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-150"
-                            x-transition:leave-start="opacity-100 scale-100"
-                            x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-52 rounded-2xl shadow-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 py-2 z-50">
-                            <a wire:click="switchLanguage('en')" @click="langOpen = false" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer {{ app()->getLocale() === 'en' ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
-                                <span class="fi fi-gb"></span>
-                                <span>English</span>
-                                @if(app()->getLocale() === 'en')
-                                    <x-icon name="o-check" class="w-4 h-4 ml-auto text-indigo-600" />
-                                @endif
-                            </a>
-                            <a wire:click="switchLanguage('ar')" @click="langOpen = false" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer {{ app()->getLocale() === 'ar' ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
-                                <span class="fi fi-sa"></span>
-                                <span>العربية</span>
-                                @if(app()->getLocale() === 'ar')
-                                    <x-icon name="o-check" class="w-4 h-4 ml-auto text-indigo-600" />
-                                @endif
-                            </a>
-                            <a wire:click="switchLanguage('bn')" @click="langOpen = false" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer {{ app()->getLocale() === 'bn' ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
-                                <span class="fi fi-bd"></span>
-                                <span>বাংলা</span>
-                                @if(app()->getLocale() === 'bn')
-                                    <x-icon name="o-check" class="w-4 h-4 ml-auto text-indigo-600" />
-                                @endif
-                            </a>
-                        </div>
+                        <template x-teleport="body">
+                            <div x-show="langOpen"
+                                x-cloak
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                @click.outside="langOpen = false"
+                                class="fixed right-4 top-16 w-52 rounded-2xl shadow-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 py-2 z-[9999] origin-top-right lg:right-8">
+                                <a wire:click="switchLanguage('en')" @click="langOpen = false" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer {{ app()->getLocale() === 'en' ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
+                                    <span class="fi fi-gb"></span>
+                                    <span>English</span>
+                                    @if(app()->getLocale() === 'en')
+                                        <x-icon name="o-check" class="w-4 h-4 ml-auto text-indigo-600" />
+                                    @endif
+                                </a>
+                                <a wire:click="switchLanguage('ar')" @click="langOpen = false" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer {{ app()->getLocale() === 'ar' ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
+                                    <span class="fi fi-sa"></span>
+                                    <span>العربية</span>
+                                    @if(app()->getLocale() === 'ar')
+                                        <x-icon name="o-check" class="w-4 h-4 ml-auto text-indigo-600" />
+                                    @endif
+                                </a>
+                                <a wire:click="switchLanguage('bn')" @click="langOpen = false" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer {{ app()->getLocale() === 'bn' ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
+                                    <span class="fi fi-bd"></span>
+                                    <span>বাংলা</span>
+                                    @if(app()->getLocale() === 'bn')
+                                        <x-icon name="o-check" class="w-4 h-4 ml-auto text-indigo-600" />
+                                    @endif
+                                </a>
+                            </div>
+                        </template>
                     </div>
 
                     @auth

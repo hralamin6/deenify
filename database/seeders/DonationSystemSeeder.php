@@ -11,6 +11,7 @@ use App\Models\PaymentAttempt;
 use App\Models\RecurringPlan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DonationSystemSeeder extends Seeder
 {
@@ -19,296 +20,190 @@ class DonationSystemSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::where('email', 'admin@mail.com')->first() ?? User::first();
-        if (!$admin) {
-            $admin = User::create([
-                'name' => 'Admin',
-                'email' => 'admin@mail.com',
-                'password' => bcrypt('000000'),
+        // 1. Create Users
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@mail.com'],
+            [
+                'name' => 'অ্যাডমিন',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
-            ]);
-        }
+            ]
+        );
 
-        $donor = User::where('email', 'user@mail.com')->first() ?? $admin;
+        $users = collect([
+            ['name' => 'আব্দুল্লাহ আল মাহমুদ', 'email' => 'abdullah@mail.com'],
+            ['name' => 'ফাতেমা আক্তার', 'email' => 'fatema@mail.com'],
+            ['name' => 'মুহাম্মদ ইব্রাহিম', 'email' => 'ibrahim@mail.com'],
+            ['name' => 'আয়েশা সিদ্দিকা', 'email' => 'ayesha@mail.com'],
+            ['name' => 'সাইফুল ইসলাম', 'email' => 'saiful@mail.com'],
+            ['name' => 'জান্নাতুল ফেরদৌস', 'email' => 'jannatul@mail.com'],
+            ['name' => 'ওমর ফারুক', 'email' => 'omar@mail.com'],
+            ['name' => 'সুমাইয়া খাতুন', 'email' => 'sumaiya@mail.com'],
+            ['name' => 'হাসান মাহমুদ', 'email' => 'hasan@mail.com'],
+            ['name' => 'মারিয়া চৌধুরী', 'email' => 'maria@mail.com'],
+        ])->map(function ($userData) {
+            return User::firstOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                ]
+            );
+        });
+        $donors = $users->push($admin);
 
+        // 2. Create Expense Categories in Bengali
         $categories = collect([
-            ['name' => 'Food', 'description' => 'Food relief and kits'],
-            ['name' => 'Transport', 'description' => 'Logistics and delivery'],
-            ['name' => 'Medical', 'description' => 'Medical supplies'],
-            ['name' => 'Education', 'description' => 'Books and tuition support'],
-            ['name' => 'Shelter', 'description' => 'Temporary housing and repairs'],
+            ['name' => 'খাদ্য সামগ্রী', 'description' => 'দুস্থদের জন্য খাদ্য ও ত্রাণ বিতরণ'],
+            ['name' => 'পরিবহন ও যাতায়াত', 'description' => 'ত্রাণ পৌঁছানো এবং লজিস্টিক খরচ'],
+            ['name' => 'চিকিৎসা সেবা', 'description' => 'বিনামূল্যে ঔষধ ও স্বাস্থ্যসেবা প্রদান'],
+            ['name' => 'শিক্ষা উপকরণ', 'description' => 'বই, খাতা এবং শিক্ষাবৃত্তি প্রদান'],
+            ['name' => 'আশ্রয়ণ প্রকল্প', 'description' => 'গৃহহীনদের জন্য অস্থায়ী বাসস্থান নির্মাণ'],
+            ['name' => 'বস্ত্র বিতরণ', 'description' => 'শ���তবস্ত্র এবং প্রয়োজনীয় পোশাক বিতরণ'],
+            ['name' => 'বিশুদ্ধ পানি', 'description' => 'নলকূপ স্থাপন ও নিরাপদ পানির ব্যবস্থা'],
+            ['name' => 'দাওয়াহ কার্যক্রম', 'description' => 'ইসলামিক বই প্রকাশনা ও প্রচার'],
+            ['name' => 'ব্যবস্থাপনা', 'description' => 'প্রকল্প পরিচালনা ও প্রশাসনিক খরচ'],
+            ['name' => 'জরুরী ত্রাণ', 'description' => 'প্রাকৃতিক দুর্যোগে فوری সহায়তা'],
         ])->map(function ($data) {
             return ExpenseCategory::firstOrCreate(['name' => $data['name']], $data);
         });
 
-        $campaign = Campaign::firstOrCreate([
-            'slug' => 'winter-relief',
-        ], [
-            'title' => 'Winter Relief',
-            'description' => 'Support families with food and blankets.',
-            'goal_amount' => 500000,
-            'status' => 'active',
-            'starts_at' => now()->subWeek(),
-            'ends_at' => now()->addMonth(),
-            'created_by' => $admin->id,
-        ]);
-
-        Expense::firstOrCreate([
-            'campaign_id' => $campaign->id,
-            'expense_category_id' => $categories->first()->id ?? null,
-            'amount' => 120000,
-        ], [
-            'spent_at' => now()->subDays(3),
-            'description' => 'Blankets and food packets',
-            'created_by' => $admin->id,
-        ]);
-
-        $recurringPlan = RecurringPlan::firstOrCreate([
-            'user_id' => $donor->id,
-            'campaign_id' => $campaign->id,
-            'interval' => 'monthly',
-        ], [
-            'amount' => 2000,
-            'currency' => 'BDT',
-            'day_of_month' => 5,
-            'status' => 'active',
-            'starts_at' => now()->startOfMonth(),
-            'next_run_at' => now()->addMonth()->startOfMonth(),
-        ]);
-
-        $paidDonation = Donation::firstOrCreate([
-            'campaign_id' => $campaign->id,
-            'donor_email' => $donor->email,
-            'status' => 'paid',
-        ], [
-            'user_id' => $donor->id,
-            'recurring_plan_id' => $recurringPlan->id,
-            'donor_name' => $donor->name,
-            'amount' => 2000,
-            'currency' => 'BDT',
-            'paid_at' => now()->subDays(1),
-        ]);
-
-        $pendingDonation = Donation::firstOrCreate([
-            'campaign_id' => $campaign->id,
-            'donor_email' => 'guest@example.com',
-            'status' => 'pending',
-        ], [
-            'donor_name' => 'Guest Donor',
-            'amount' => 1000,
-            'currency' => 'BDT',
-        ]);
-
-        PaymentAttempt::firstOrCreate([
-            'donation_id' => $paidDonation->id,
-            'gateway' => 'bkash',
-            'status' => 'success',
-        ], [
-            'amount' => $paidDonation->amount,
-            'currency' => $paidDonation->currency,
-            'provider_reference' => 'BKASH-DEMO-001',
-            'initiated_at' => now()->subDays(1)->subMinutes(2),
-            'completed_at' => now()->subDays(1),
-            'response_payload' => ['demo' => true],
-        ]);
-
-        PaymentAttempt::firstOrCreate([
-            'donation_id' => $pendingDonation->id,
-            'gateway' => 'sslcommerz',
-            'status' => 'pending',
-        ], [
-            'amount' => $pendingDonation->amount,
-            'currency' => $pendingDonation->currency,
-            'initiated_at' => now()->subHours(2),
-        ]);
-
-        DonationReceipt::firstOrCreate([
-            'donation_id' => $paidDonation->id,
-        ], [
-            'receipt_number' => 'DN-2026-0001',
-            'issued_at' => now()->subDays(1),
-            'meta' => ['source' => 'seed'],
-        ]);
-
-        $moreCampaigns = [
+        // 3. Create Campaigns with detailed Bengali descriptions
+        $campaignsData = [
             [
-                'slug' => 'food-support',
-                'title' => 'Food Support',
-                'description' => 'Provide daily meals for families in need.',
-                'goal_amount' => 300000,
-                'status' => 'active',
-                'starts_at' => now()->subDays(10),
-                'ends_at' => now()->addWeeks(3),
+                'slug' => 'etim-shohayota',
+                'title' => 'এতিম সহায়তা কর্মসূচি',
+                'description' => "পবিত্র কুরআনে আল্লাহ তা'আলা বারবার এতিমদের প্রতি সদয় আচরণের নির্দেশ দিয়েছেন। এই ঐশী অনুপ্রেরণায় আমরা ১০০ জন এতিম শিশুর শিক্ষা, স্বাস্থ্য, এবং মৌলিক চাহিদা পূরণের দায়িত্ব নিয়েছি। আপনার অনুদান একজন এতিমের জীবনে আনতে পারে বিশাল পরিবর্তন।",
+                'goal_amount' => 750000, 'status' => 'active',
             ],
             [
-                'slug' => 'flood-relief',
-                'title' => 'Flood Relief',
-                'description' => 'Emergency relief for flood-affected regions.',
-                'goal_amount' => 800000,
-                'status' => 'active',
-                'starts_at' => now()->subDays(20),
-                'ends_at' => now()->addMonth(),
+                'slug' => 'mosjid-nirman',
+                'title' => 'মসজিদ নির্মাণ প্রকল্প',
+                'description' => "রাসূলুল্লাহ (সা.) বলেছেন, 'যে ব্যক্তি আল্লাহর জন্য একটি মসজিদ নির্মাণ করবে, আল্লাহ তার জন্য জান্নাতে একটি ঘর নির্মাণ করবেন।' আমরা প্রত্যন্ত অঞ্চলে একটি নতুন মসজিদ নির্মাণের উদ্যোগ নিয়েছি, যা একটি ইসলামিক শিক্ষা ও সামাজিক কেন্দ্র হিসেবেও কাজ করবে।",
+                'goal_amount' => 2500000, 'status' => 'active',
             ],
             [
-                'slug' => 'education-fund',
-                'title' => 'Education Fund',
-                'description' => 'Scholarships and school supplies for students.',
-                'goal_amount' => 450000,
-                'status' => 'draft',
-                'starts_at' => now()->addDays(7),
-                'ends_at' => now()->addMonths(3),
+                'slug' => 'bidhoba-shabolombikoron',
+                'title' => 'বিধবা ও অসহায় নারীদের স্বাবলম্বীকরণ',
+                'description' => 'আমরা অসহায় নারীদের সেলাই মেশিন প্রদান, হস্তশিল্পের প্রশিক্ষণ এবং ক্ষুদ্র ব্যবসা শুরু করার জন্য আর্থিক সহায়তা দিয়ে থাকি, যাতে তারা সম্মানের সাথে জীবিকা নির্বাহ করতে পারে।',
+                'goal_amount' => 600000, 'status' => 'active',
             ],
             [
-                'slug' => 'health-camp',
-                'title' => 'Health Camp',
-                'description' => 'Free medical camp and medicine distribution.',
-                'goal_amount' => 200000,
-                'status' => 'closed',
-                'starts_at' => now()->subMonths(2),
-                'ends_at' => now()->subMonth(),
+                'slug' => 'bishuddho-pani',
+                'title' => 'বিশুদ্ধ পানি সরবরাহ প্রকল্প',
+                'description' => "রাসূলুল্লাহ (সা.) বলেছেন, '��র্বোত্তম সাদকা হলো পানি পান করানো।' আমরা আর্সেনিকমুক্ত ও নিরাপদ পানির উৎস নিশ্চিত করার জন্য গভীর নলকূপ স্থাপনের প্রকল্প গ্রহণ করেছি।",
+                'goal_amount' => 300000, 'status' => 'active',
+            ],
+            [
+                'slug' => 'ramadan-iftar',
+                'title' => 'রমজান মাসে ইফতার ও সাহরি বিতরণ',
+                'description' => 'এই পবিত্র মাসে আমরা প্রতিদিন শত শত গরিব ও অসহায় রোজাদারের জন্য ইফতার এবং সাহরির আয়োজন করে থাকি। আপনার অনুদান তাদের মুখে হাসি ফোটাতে পারে।',
+                'goal_amount' => 900000, 'status' => 'active',
+            ],
+            [
+                'slug' => 'quran-shikkha',
+                'title' => 'কুরআন শিক্ষা ও বিতরণ',
+                'description' => " 'তোমা��ের মধ্যে সেই ব্যক্তিই সর্বোত্তম, যে নিজে কুরআন শিখে এবং অন্যকে তা শিক্ষা দেয়।' আমরা গরিব ও মেধাবী শিক্ষার্থীদের মধ্যে বিনামূল্যে কুরআন শরিফ বিতরণ এবং তাদের জন্য কুরআন শিক্ষার ব্যবস্থা করেছি।",
+                'goal_amount' => 450000, 'status' => 'draft',
+            ],
+            [
+                'slug' => 'shitbostro-bitoron',
+                'title' => 'শীতবস্ত্র বিতরণ কর্মসূচি',
+                'description' => 'প্রতি বছর শীতের তীব্রতায় আমাদের দেশের উত্তরাঞ্চলের দরিদ্র মানুষ অসহনীয় কষ্টে দিন কাটায়। আপনার একটি উষ্ণ অনুদান তাদের শীতের কষ্ট থেকে মুক্তি দিতে পারে।',
+                'goal_amount' => 800000, 'status' => 'active',
+            ],
+            [
+                'slug' => 'binamulle-shasthosheba',
+                'title' => 'বিনামূল্যে স্বাস্থ্যসেবা ও মেডিকেল ক্যাম্প',
+                'description' => 'আমরা বিভিন্ন সুবিধাবঞ্চিত এলাকায় বিনামূল্যে মেডিকেল ক্যাম্পের আয়োজন করি, যেখানে অভিজ্ঞ ডাক্তাররা গরিব রোগীদের স্বাস্থ্য পরীক্ষা করেন এবং বিনামূল্যে ঔষধ বিতরণ করা হয়।',
+                'goal_amount' => 550000, 'status' => 'closed',
+            ],
+            [
+                'slug' => 'dawah-prochar',
+                'title' => 'দাওয়াহ ও ইসলামিক বই প্রকাশনা',
+                'description' => "ইসলামের সঠিক জ্ঞান মানুষের কাছে পৌঁছে দেওয়ার লক্ষ্যে আমরা সহজ ভাষায় বই এবং প্রচারপত্র প্রকাশ ও বিতরণ করে থাকি। আপনার অনুদান হতে পারে কারো হি��ায়াতের কারণ।",
+                'goal_amount' => 350000, 'status' => 'active',
+            ],
+            [
+                'slug' => 'ringrosto-shahajjo',
+                'title' => 'ঋণগ্রস্তদের সাহায্য প্রদান',
+                'description' => 'আমরা যাচাই-বাছাই করে ঋণগ্রস্তদের ঋণ পরিশোধে সহায়তা করি, যাতে তারা একটি চিন্তামুক্ত ও স্বাভাবিক জীবনে ফিরে আসতে পারে। আপনার যাকাতের অর্থ এখানে ব্যয় করতে পারেন।',
+                'goal_amount' => 1200000, 'status' => 'draft',
             ],
         ];
 
-        foreach ($moreCampaigns as $data) {
-            $campaignItem = Campaign::firstOrCreate(
+        $createdCampaigns = collect($campaignsData)->map(function ($data) use ($admin) {
+            return Campaign::firstOrCreate(
                 ['slug' => $data['slug']],
-                $data + ['created_by' => $admin->id]
+                [
+                    'title' => $data['title'],
+                    'description' => $data['description'],
+                    'goal_amount' => $data['goal_amount'],
+                    'status' => $data['status'],
+                    'starts_at' => now()->subDays(rand(5, 20)),
+                    'ends_at' => now()->addDays(rand(30, 90)),
+                    'created_by' => $admin->id,
+                ]
             );
+        });
 
-            Expense::firstOrCreate([
-                'campaign_id' => $campaignItem->id,
-                'expense_category_id' => $categories->where('name', 'Food')->first()->id ?? null,
-                'amount' => 45000,
-            ], [
-                'spent_at' => now()->subDays(5),
-                'description' => 'Initial campaign expenses',
-                'created_by' => $admin->id,
-            ]);
+        // 4. Create 30 Expenses
+        $createdCampaigns->each(function ($campaign) use ($categories, $admin) {
+            for ($i = 0; $i < 3; $i++) {
+                Expense::create([
+                    'campaign_id' => $campaign->id,
+                    'expense_category_id' => $categories->random()->id,
+                    'amount' => rand(10000, 50000),
+                    'spent_at' => now()->subDays(rand(1, 10)),
+                    'description' => 'প্রকল্পের প্রাথমিক পর্যায়ের খরচ নং-'.($i + 1),
+                    'created_by' => $admin->id,
+                ]);
+            }
+        });
 
-            Expense::firstOrCreate([
-                'campaign_id' => $campaignItem->id,
-                'expense_category_id' => $categories->where('name', 'Transport')->first()->id ?? null,
-                'amount' => 18000,
-            ], [
-                'spent_at' => now()->subDays(2),
-                'description' => 'Distribution logistics',
-                'created_by' => $admin->id,
-            ]);
+        // 5. Create Donations, Payment Attempts, and other related data
+        $createdCampaigns->each(function ($campaign) use ($donors) {
+            // Create a few donations for each campaign
+            for ($i = 0; $i < 5; $i++) {
+                $donor = $donors->random();
+                $status = ['paid', 'pending', 'failed', 'cancelled'][rand(0, 3)];
+                $amount = rand(500, 5000);
 
-            $monthlyPlan = RecurringPlan::firstOrCreate([
-                'user_id' => $donor->id,
-                'campaign_id' => $campaignItem->id,
-                'interval' => 'monthly',
-            ], [
-                'amount' => 1500,
-                'currency' => 'BDT',
-                'day_of_month' => 10,
-                'status' => 'active',
-                'starts_at' => now()->startOfMonth(),
-                'next_run_at' => now()->addMonth()->startOfMonth(),
-            ]);
+                $donation = Donation::create([
+                    'campaign_id' => $campaign->id,
+                    'user_id' => $donor->id,
+                    'donor_name' => $donor->name,
+                    'donor_email' => $donor->email,
+                    'amount' => $amount,
+                    'currency' => 'BDT',
+                    'status' => $status,
+                    'paid_at' => $status === 'paid' ? now()->subDays(rand(1, 5)) : null,
+                ]);
 
-            $weeklyPlan = RecurringPlan::firstOrCreate([
-                'user_id' => $donor->id,
-                'campaign_id' => $campaignItem->id,
-                'interval' => 'weekly',
-            ], [
-                'amount' => 500,
-                'currency' => 'BDT',
-                'day_of_week' => 5,
-                'status' => 'active',
-                'starts_at' => now()->subWeek(),
-                'next_run_at' => now()->addDays(7),
-            ]);
+                if ($status !== 'pending') {
+                    $paymentAttempt = PaymentAttempt::create([
+                        'donation_id' => $donation->id,
+                        'gateway' => ['bkash', 'nagad', 'rocket', 'shurjopay', 'aamarpay'][rand(0, 3)],
+                        'status' => $status === 'paid' ? 'success' : $status,
+                        'amount' => $amount,
+                        'currency' => 'BDT',
+                        'initiated_at' => now()->subDays(rand(1, 5))->subMinutes(10),
+                        'completed_at' => now()->subDays(rand(1, 5)),
+                        'provider_reference' => strtoupper(str()->random(10)),
+                        'response_payload' => ['status' => $status],
+                    ]);
+                }
 
-            $paid = Donation::firstOrCreate([
-                'campaign_id' => $campaignItem->id,
-                'donor_email' => $donor->email,
-                'status' => 'paid',
-                'amount' => 1500,
-            ], [
-                'user_id' => $donor->id,
-                'recurring_plan_id' => $monthlyPlan->id,
-                'donor_name' => $donor->name,
-                'currency' => 'BDT',
-                'paid_at' => now()->subDays(2),
-            ]);
-
-            $failed = Donation::firstOrCreate([
-                'campaign_id' => $campaignItem->id,
-                'donor_email' => 'guest.fail@example.com',
-                'status' => 'failed',
-                'amount' => 800,
-            ], [
-                'donor_name' => 'Guest Failed',
-                'currency' => 'BDT',
-            ]);
-
-            $cancelled = Donation::firstOrCreate([
-                'campaign_id' => $campaignItem->id,
-                'donor_email' => 'guest.cancel@example.com',
-                'status' => 'cancelled',
-                'amount' => 1200,
-            ], [
-                'donor_name' => 'Guest Cancelled',
-                'currency' => 'BDT',
-            ]);
-
-            PaymentAttempt::firstOrCreate([
-                'donation_id' => $paid->id,
-                'gateway' => 'nagad',
-                'status' => 'success',
-            ], [
-                'amount' => $paid->amount,
-                'currency' => $paid->currency,
-                'provider_reference' => 'NAGAD-DEMO-'.$campaignItem->id,
-                'initiated_at' => now()->subDays(2)->subMinutes(3),
-                'completed_at' => now()->subDays(2),
-                'response_payload' => ['demo' => true],
-            ]);
-
-            PaymentAttempt::firstOrCreate([
-                'donation_id' => $failed->id,
-                'gateway' => 'sslcommerz',
-                'status' => 'failed',
-            ], [
-                'amount' => $failed->amount,
-                'currency' => $failed->currency,
-                'initiated_at' => now()->subHours(6),
-                'completed_at' => now()->subHours(5),
-                'response_payload' => ['error' => 'DECLINED'],
-            ]);
-
-            PaymentAttempt::firstOrCreate([
-                'donation_id' => $cancelled->id,
-                'gateway' => 'bkash',
-                'status' => 'cancelled',
-            ], [
-                'amount' => $cancelled->amount,
-                'currency' => $cancelled->currency,
-                'initiated_at' => now()->subHours(4),
-                'completed_at' => now()->subHours(3),
-                'response_payload' => ['error' => 'USER_CANCELLED'],
-            ]);
-
-            DonationReceipt::firstOrCreate([
-                'donation_id' => $paid->id,
-            ], [
-                'receipt_number' => 'DN-2026-'.str_pad((string) $campaignItem->id, 4, '0', STR_PAD_LEFT),
-                'issued_at' => now()->subDays(2),
-                'meta' => ['source' => 'seed'],
-            ]);
-
-            Donation::firstOrCreate([
-                'campaign_id' => $campaignItem->id,
-                'donor_email' => 'weekly@example.com',
-                'status' => 'pending',
-                'amount' => 500,
-            ], [
-                'recurring_plan_id' => $weeklyPlan->id,
-                'donor_name' => 'Weekly Donor',
-                'currency' => 'BDT',
-            ]);
-        }
+                if ($status === 'paid') {
+                    DonationReceipt::create([
+                        'donation_id' => $donation->id,
+                        'receipt_number' => 'DN-'.date('Y').'-'.str_pad($donation->id, 6, '0', STR_PAD_LEFT),
+                        'issued_at' => now(),
+                        'meta' => ['source' => 'seed'],
+                    ]);
+                }
+            }
+        });
     }
 }

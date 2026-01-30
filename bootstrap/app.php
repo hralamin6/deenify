@@ -20,6 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/aamarpay/callback',
             'payment/aamarpay/cancel',
         ]);
+
+        // Don't encrypt cookies for payment callbacks to maintain session
+        $middleware->encryptCookies(except: [
+            'payment/aamarpay/callback',
+            'payment/aamarpay/cancel',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -34,8 +34,9 @@ class PaymentController extends Controller
                     'status' => 'paid',
                     'paid_at' => now(),
                 ]);
-                session()->put('toast_success', __('Payment successful!'));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+
+                return redirect()->route('web.campaign', $donation->campaign->slug)
+                    ->with('success', __('Donation successful! Thank you for your support.'));
             } else {
                 // Failed
                 $paymentAttempt->update([
@@ -45,12 +46,15 @@ class PaymentController extends Controller
                 ]);
 
                 $donation->update(['status' => 'failed']);
-                session()->put('toast_error', __('Payment failed!'));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+
+                return redirect()->route('web.campaign', $donation->campaign->slug)
+                    ->with('error', __('Donation failed: ').$response->message());
             }
         } catch (\Exception $e) {
-           session()->put('toast_error', __('Payment failed! '.$e));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+            dd($e);
+
+            //          return redirect()->route('web.home')
+            //                ->with('error', __('An error occurred during payment verification.'));
         }
     }
 
@@ -68,11 +72,11 @@ class PaymentController extends Controller
             $donation = $paymentAttempt->donation;
             $donation->update(['status' => 'cancelled']);
 
-                session()->put('toast_error', __('Payment cancelled!'));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+            return redirect()->route('web.campaign', $donation->campaign->slug)
+                ->with('warning', __('Donation was cancelled.'));
         }
 
-        return redirect()->route('web.home');
+        return redirect()->route('web.home')->with('warning', __('Donation was cancelled.'));
     }
 
     public function aamarpayRedirect()
@@ -80,7 +84,7 @@ class PaymentController extends Controller
         $paymentData = session()->get('aamarpay_payment');
 
         if (! $paymentData) {
-            return redirect()->route('web.home');
+            return redirect()->route('web.home')->with('error', __('Payment session expired.'));
         }
 
         session()->forget('aamarpay_payment');
@@ -115,24 +119,16 @@ class PaymentController extends Controller
 
     public function aamarpayCallback(Request $request)
     {
-        // Log the incoming request for debugging
-        \Log::info('AamarPay Callback Received', [
-            'all_data' => $request->all(),
-            'mer_txnid' => $request->mer_txnid ?? 'not set',
-            'pay_status' => $request->pay_status ?? 'not set',
-            'status' => $request->status ?? 'not set',
-        ]);
-
         $config = [
             'store_id' => config('aamarpay.store_id'),
             'signature_key' => config('aamarpay.signature_key'),
             'sandbox' => config('aamarpay.sandbox'),
             'redirect_url' => [
                 'success' => [
-                    'route' => 'payment.aamarpay.callback',
+                    'url' => route('payment.aamarpay.callback'),
                 ],
                 'cancel' => [
-                    'route' => 'payment.aamarpay.cancel',
+                    'url' => route('payment.aamarpay.cancel'),
                 ],
             ],
         ];
@@ -142,40 +138,11 @@ class PaymentController extends Controller
         try {
 
             $orderId = $request->mer_txnid;
-            
-            if (!$orderId) {
-                \Log::error('AamarPay: No mer_txnid in request');
-                session()->put('toast_error', __('AamarPay: No mer_txnid in request'));
-                return redirect()->route('web.home');
-            }
-
             $paymentAttempt = PaymentAttempt::where('provider_reference', $orderId)->firstOrFail();
             $donation = $paymentAttempt->donation;
 
-            \Log::info('AamarPay: Payment attempt found', [
-                'payment_attempt_id' => $paymentAttempt->id,
-                'expected_amount' => $paymentAttempt->amount,
-                'received_amount' => $request->amount ?? 'not set',
-            ]);
-
-            // Custom validation since the package's valid() method expects 'status' field
-            // which AamarPay doesn't send. We validate based on what AamarPay actually returns.
-            $isPaymentSuccessful = (
-                $request->pay_status === 'Successful' &&
-                $request->amount == $paymentAttempt->amount &&
-                $request->mer_txnid === $orderId
-            );
-
-            \Log::info('AamarPay: Validation check', [
-                'pay_status' => $request->pay_status,
-                'pay_status_match' => $request->pay_status === 'Successful',
-                'amount_match' => $request->amount == $paymentAttempt->amount,
-                'txnid_match' => $request->mer_txnid === $orderId,
-                'is_valid' => $isPaymentSuccessful,
-            ]);
-
             // Validate the payment response
-            if ($isPaymentSuccessful) {
+            if ($aamarpay->valid($request, $paymentAttempt->amount)) {
 
                 $paymentAttempt->update([
                     'status' => 'success',
@@ -188,15 +155,15 @@ class PaymentController extends Controller
                     'paid_at' => now(),
                 ]);
 
-                \Log::info('AamarPay: Payment successful', ['donation_id' => $donation->id]);
+                // Re-authenticate the user if they were logged in before payment
+                if ($donation->user_id && ! auth()->check()) {
+                    auth()->loginUsingId($donation->user_id);
+                    session()->regenerate(); // Regenerate session to maintain login
+                }
 
-                session()->put('toast_success', __('Payment successful!'));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+                return redirect()->route('web.campaign', $donation->campaign->slug)
+                    ->with('success', __('Donation successful! Thank you for your support.'));
             } else {
-                \Log::warning('AamarPay: Payment validation failed', [
-                    'request_data' => $request->all(),
-                ]);
-
                 $paymentAttempt->update([
                     'status' => 'failed',
                     'completed_at' => now(),
@@ -206,21 +173,17 @@ class PaymentController extends Controller
                 $donation->update(['status' => 'failed']);
 
                 // Re-authenticate the user if they were logged in before payment
-                // if ($donation->user_id && ! auth()->check()) {
-                //     auth()->loginUsingId($donation->user_id);
-                //     session()->regenerate();
-                // }
-                session()->put('toast_error', __('Payment failed!'));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+                if ($donation->user_id && ! auth()->check()) {
+                    auth()->loginUsingId($donation->user_id);
+                    session()->regenerate(); // Regenerate session to maintain login
+                }
+
+                return redirect()->route('web.campaign', $donation->campaign->slug)
+                    ->with('error', __('Donation failed. Please try again.'));
             }
         } catch (\Exception $e) {
-            \Log::error('AamarPay Callback Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-                session()->put('toast_error', __('Payment failed! '.$e));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+            return redirect()->route('web.home')
+                ->with('error', __('An error occurred during payment verification.'));
         }
     }
 
@@ -241,13 +204,13 @@ class PaymentController extends Controller
             // Re-authenticate the user if they were logged in before payment
             if ($donation->user_id && ! auth()->check()) {
                 auth()->loginUsingId($donation->user_id);
-                session()->regenerate();
+                session()->regenerate(); // Regenerate session to maintain login
             }
 
-                session()->put('toast_error', __('Payment cancelled! '));
-                return redirect()->route('web.campaign', $donation->campaign->slug);
+            return redirect()->route('web.campaign', $donation->campaign->slug)
+                ->with('warning', __('Donation was cancelled.'));
         }
 
-        return redirect()->route('web.home');
+        return redirect()->route('web.home')->with('warning', __('Donation was cancelled.'));
     }
 }

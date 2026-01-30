@@ -340,5 +340,5 @@ new class extends Component
         </div>
     </div>
 
-    <div class="lg:hidden h-16"></div>
+    <div class="lg:hidden h-4"></div>
 </div>

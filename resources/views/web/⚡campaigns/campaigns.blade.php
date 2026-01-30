@@ -2,7 +2,7 @@
     {{-- Header is now in layout --}}
     
     {{-- Hero Section --}}
-    <section class="relative overflow-hidden py-12 sm:py-16 bg-white dark:bg-gray-900">
+    <section class="relative overflow-hidden py-6 sm:py-10 bg-white dark:bg-gray-900">
         <div class="absolute inset-0 -z-10">
             <div class="absolute top-0 right-0 h-96 w-96 rounded-full bg-purple-300/20 dark:bg-purple-600/10 blur-3xl"></div>
             <div class="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-indigo-300/20 dark:bg-indigo-600/10 blur-3xl"></div>

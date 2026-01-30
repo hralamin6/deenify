@@ -42,11 +42,14 @@ class ContributionSeeder extends Seeder
         ];
 
         foreach ($contributions as $data) {
-            Contribution::create([
-                ...$data,
-                'slug' => Str::slug($data['title']),
-                'date' => now()->subDays(rand(1, 30)),
-            ]);
+            Contribution::updateOrCreate(
+                ['title' => $data['title']],
+                [
+                    ...$data,
+                    'slug' => Str::slug($data['title']),
+                    'date' => now()->subDays(rand(1, 30)),
+                ]
+            );
         }
     }
 }
